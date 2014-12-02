@@ -1,0 +1,50 @@
+=============================================
+               CatServer
+=============================================
+
+This program is a http ephem server. Its provide ephem for:
+.- satellites in NORAD database
+.- know asteroids in Minor Planet Center files.
+.- UCAC4 star catalog
+.- Planets and natural satelite (to be done)
+
+== Installing
+Edit config/config.cfg and adapt several parameters. Mandatory changes are:
+
+.- home_dir=/home/nacho/work/CatServer [HOME of scrips]
+.- base_dir=%(home_dir)s/../DATA [all DATA home]
+.- server_address=192.168.1.12 
+.- server_port=9000
+.- numcores=8 [adapt to your machine]
+.- date0=2457022.500000 [ Julian Date center date]
+.- datefrom=2457016.500000  [ Julian Date min. It must be date0-Delta]
+.- dateto=2457028.500000 [ Julian Date max. It must be date0+Delta]
+.- eachdays=50 [propagate MPCORB file every 50 days]
+
+Search the code for others.
+
+
+Run firsttimerun.py. This executable compile and download all needed files.
+It take some time (more than 3.3Gb of downloads)
+
+.- Compile ucac4 C rutines using swig.
+
+.- Download (3.2Gb) UCAC4 from ftp://cdsarc.u-strasbg.fr/pub/cats/I/322A/UCAC4
+
+.- Compile integrat from Project Pluto (http://www.projectpluto.com/pluto/integrat.htm). Is the Bill Gray original lunar rutines except I introduce a line in linlunar.mak in order to compile integrat.
+
+.- Download (109Mb) JPL ephem  from: ftp://ssd.jpl.nasa.gov/pub/eph/planets/Linux/de430/linux_p1550p2650.430 needed by integrat
+
+
+== Operating principles ==
+
+Satellites
+----------
+TBD
+
+
+
+
+
+
+

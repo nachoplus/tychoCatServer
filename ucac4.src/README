@@ -1,0 +1,8 @@
+ucac4.src
+=========
+
+This directory containt python wrapper and  C code to extract
+start from UCAC4 catalog.
+
+
+Run mkswig.sh script to make and compile

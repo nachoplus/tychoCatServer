@@ -1,0 +1,31 @@
+			  HELP
+			=======
+
+The aim of this server is provide a collection of objects present in
+a sky region at given time.
+
+At the present times you can get stars from UCAC4 catalog, satellites 
+or know asteroids.
+
+The url syntax is:
+
+For help (this file):
+{server basename}/help  
+
+For stars in UCAC4 catalog:
+{server basename}/ucac4?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+{server basename}/viz-bin/aserver.cgi?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+
+For Satellites:
+{server basename}/sat?format={output format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+
+For asteroids:
+{server basename}/mpc?format={output format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+{server basename}/mpcsearch?format={output format}&date={YYYY-MM-DD HH:MM:SS}&key={asteroid key}
+
+Implemented {output format} are html,csv,excel or mpc  
+
+NOTES:
+
+{server basename}/viz-bin/aserver.cgi URL is used to mimic CDS aserver output as needed by SCAMP astroref catalog
+

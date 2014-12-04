@@ -59,10 +59,8 @@ This are the steps that bootstrap.py performs:
 It take some time (more than 3.3Gb of downloads)
 
 Now, depending of the setting of 'use_fix_mpcorb':
-·*use_fix_mpcorb='True'
-··*Download MCPORB.DAT rename to FIX_MPCORB.DAT and put in the 'datempcorb' dir
-·*use_fix_mpcorb='False'
-··*Run updaterCatServer.py to create the firts cache. The run take very very very long time depending of your dateto/datefrom may be several days!!
+* use_fix_mpcorb='True' => Download MCPORB.DAT rename to FIX_MPCORB.DAT and put in the 'datempcorb' dir
+* use_fix_mpcorb='False'=> Run updaterCatServer.py to create the firts cache. The run take very very very long time depending of your dateto/datefrom may be several days!!
 
 __Run the server__
 ----------

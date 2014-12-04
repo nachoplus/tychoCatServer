@@ -202,7 +202,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	                out += str(f)+','
         return out
 
-
+#TO BE FIXED. Something is wrong with this pyfits version
     def fitsOutput(self,data):
         out = StringIO()
 	columns=[]
@@ -228,6 +228,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	hdu = pyfits.PrimaryHDU()
 	thdulist = pyfits.HDUList([])
 	thdulist.append(tbhdu)
+	print thdulist
+	print tbhdu
+	print out
 	thdulist.writeto(out, clobber=True)
         out.seek(0)
         the_stream = out.read()   # here is your file content

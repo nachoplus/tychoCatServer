@@ -229,7 +229,7 @@ class satEphem():
         Speed up. Make a chunk of satellites list and process in
         one thread per CPU core.
         '''
-        ncores=int(cfg['numcores'])
+        ncores=multiprocessing.cpu_count()
 
         if len(satellites)<=ncores*10:
             print "Not to much satellites(%d). Going single thread" % len(satellites)

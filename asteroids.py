@@ -251,14 +251,15 @@ class MPCephem:
         d=d.strftime("%Y-%m-%d")
         jd=ephem.date(d)+dubliJDoffset
 	print date,jd
-        if jd>=dateto:
+	if not cfg['use_fix_mpcorb']=='True':
+          if jd>=dateto:
             print "date %s is outside off orbital DB range.\nDATETO %s" % (jd,dateto)
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
 	    return
 
 
-        if jd<=datefrom:
+          if jd<=datefrom:
             print "date %s is outside off orbital DB range.\nDATEFROM %s" % (jd,datefrom)
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
@@ -268,9 +269,14 @@ class MPCephem:
         dateDistance=round((jd-datestart)/eachdays)
         mpcorbprefix="%0d" % (datestart+dateDistance*eachdays)
         print datestart,dateDistance,mpcorbprefix
-
-        self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
-        self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
+	if cfg['use_fix_mpcorb']=='True':
+	        self.mpcorbfile=dir_dest+'/FIX_MPCORB.DAT'
+        	self.guestDB=dir_guestDB+'/FIX_guest_'+getToday()+".p"
+	else:
+	        self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
+        	self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
+        print self.mpcorbfile
+       	print self.guestDB
 	return jd
 
     def getMPCORB(self,date=''):
@@ -466,7 +472,7 @@ class MPCephem:
 	asteroids is a dict contain elements
 	delta is the time to compute PA,SPEED
         '''
-        ncores=int(cfg['numcores'])
+        ncores=multiprocessing.cpu_count()
         if len(asteroids)<=ncores*10:
             print "Not to much asteroids(%d). Going single thread" % len(asteroids)
             return self.compute(asteroids,delta)
@@ -518,14 +524,12 @@ class MPCephem:
 
 
 if __name__ == '__main__':
-
-    m=prepareMPCorb()
-
-    #m.propagate('DAILY.DAT')
-
     '''
-    #mpc.getMPCORB('1973-09-29 00:00:00')
+	Test
+    '''
+    m=MPCEphem()
+
     print mpc.filterMPC("2014-09-13 12:31:38",30.2,12,.2)
     print mpc.filterMPC("1971-09-14 22:23:09",41.2,-13,1)
     print mpc.filterMPC("2026-03-14 02:23:09",4.2,-13,1)
-    '''
+

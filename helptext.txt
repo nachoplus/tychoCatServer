@@ -14,7 +14,6 @@ For help (this file):
 
 For stars in UCAC4 catalog:
 {server basename}/ucac4?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
-{server basename}/viz-bin/aserver.cgi?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
 
 For Satellites:
 {server basename}/sat?format={output format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
@@ -26,6 +25,9 @@ For asteroids:
 Implemented {output format} are html,csv,excel or mpc  
 
 NOTES:
+Aditional url:
 
-{server basename}/viz-bin/aserver.cgi URL is used to mimic CDS aserver output as needed by SCAMP astroref catalog
+{server basename}/viz-bin/aserver.cgi 
+
+This URL is used to mimic CDS aserver output as needed by SCAMP astroref catalog
 

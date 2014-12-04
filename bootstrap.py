@@ -70,20 +70,45 @@ def jplEph():
 	else:
 		print file_name,"Allready downloaded"
 
+def pyephem():
+	print "Installing modified version of pyephem"
+	org_path=os.getcwd()
+	os.chdir('pyephem/pyephem-3.7.5.1')
+	cmd='python setup.py install'
+	exe(cmd)
+	os.chdir(org_path)
 
 if __name__ == '__main__':
+	print "================================================"
 	print "First time run. Only need to run one time.Setting up"
 	print "It could be take very-very long time"
-	print "CHECK your config/main.cfg file!!!"
-	printCfg()
-	print "CHECK your config/main.cfg file!!!"
+	print "CHECK your data_dir in config/main.cfg file!!!"
+	print "================================================"
 	print
 	ucac4src()
 	ucac4files()
 	lunar()
 	jplEph()
+	pyephem()
+	cfg=dict(config.items("MPCORB"))
+        path=cfg['base_dir']
+	print "================================================"
+	print "			READY!"
+	print "================================================"
+	print "All the data was put on:"
+	print path
+	print "Now, depending of the setting og 'use_fix_mpcorb':"
 	print
-	print "READY"
-	print "Now run updaterCatServer.py to create the cache.\nThe first run take very very very long time"
-	print "Depending of your dateto/datefrom may be several days."
+	print "use_fix_mpcorb='True'"
+	print "\tDownload MCPORB.DAT rename to FIX_MPCORB.DAT and"
+	print "\tput in the 'datempcorb' dir:"
+	print "\t"+cfg['datempcorb']
+	print
+	print "use_fix_mpcorb='False'"
+	print "\tRun updaterCatServer.py to create the cache."
+	print "\tThe first run take very very very long time"
+	print "\tDepending of your dateto/datefrom may be several days!!"
+	print
+	print "Actual value of use_fix_mpcorb=",cfg['use_fix_mpcorb']
+	print "================================================"
 

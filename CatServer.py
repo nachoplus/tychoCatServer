@@ -32,7 +32,12 @@ from config import *
 from helper import *
 cfg=dict(config.items("DEFAULT"))
 
-HOST_NAME = cfg['server_address'] # !!!REMEMBER TO CHANGE THIS IN config/main.cfg!!!
+
+#HOST_NAME = cfg['server_address'] 
+#To use include server_address=<IP> line in your main.cfg
+
+#By default listen all adapters
+HOST_NAME = ''
 
 PORT_NUMBER = int(cfg['server_port']) # Maybe set this to 9000.
 
@@ -362,8 +367,19 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def standardParams(self,params):
         formatType=params.get('format',['html'])[0]
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        date=params.get('date',[now])[0]
+	'''
+	if cfg['fix_date']=='True':
+		cfgMPCORB=dict(config.items("MPCORB"))
+		date0JD=float(cfgMPCORB['date0'])
+		unixT0=(date0JD-2440587.5) * 86400
+		date=datetime.datetime.fromtimestamp(unixT0).strftime("%Y-%m-%d %H:%M:%S")
+		print "Force date:",date
+	else:
+        	now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        	date=params.get('date',[now])[0]
+	'''
+	now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+       	date=params.get('date',[now])[0]
         ra=float(params.get('ra',[0])[0])
         dec=float(params.get('dec',[0])[0])
         r=float(params.get('r',[1])[0])
@@ -384,6 +400,12 @@ if __name__ == '__main__':
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     httpd.daemon=True	
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
+    if cfg['use_fix_mpcorb']=='True':
+	print "WARNING: use_fix_mpcorb='True'."
+	print "All calculation will be done for a FIX_MPCORB.DAT"
+	print "Calculation for distant dates may be inacurate."
+
+
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

@@ -1,33 +1,43 @@
-			  HELP
-			=======
+				CatServer HELP
+				==============
 
-The aim of this server is provide a collection of objects present in
-a sky region at given time.
+CatServer is a regular http server. You visit below url with your favorite browser.
+The aim of this server is provide a collection of objects present in a  sky region
+at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees)
+are mandatory.
 
-At the present times you can get stars from UCAC4 catalog, satellites 
-or know asteroids.
+At the present times you can get stars from UCAC4 catalog, satellites or know asteroids.
+Output file format {format} can take this values: html,csv,excel,fits or mpc
 
-The url syntax is:
+URL syntax:
 
-For help (this file):
-{server basename}/help  
+Help:
+	http://host:port/
+	http://host:port/help
 
-For stars in UCAC4 catalog:
-{server basename}/ucac4?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+Stars in UCAC4 catalog:
+	http://host:port/ucac4?format={format}&ra={RA}&dec={DEC}&r={degrees}
 
-For Satellites:
-{server basename}/sat?format={output format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
+Satellites:
+	http://host:port/sat?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}
 
-For asteroids:
-{server basename}/mpc?format={output format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}
-{server basename}/mpcsearch?format={output format}&date={YYYY-MM-DD HH:MM:SS}&key={asteroid key}
+Asteroids:
+	http://host:port/mpc?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}
+	http://host:port/mpcsearch?format={format}&date={YYYY-MM-DD HH:MM:SS}&key={key}
 
-Implemented {output format} are html,csv,excel or mpc  
+Implemented {format} can take this values: html,csv,excel,fits or mpc
 
 NOTES:
+
+Default values:
+	date={present time}
+	ra=0
+	dec=0
+	r=1
+	format=html
+
 Aditional url:
 
-{server basename}/viz-bin/aserver.cgi 
-
-This URL is used to mimic CDS aserver output as needed by SCAMP astroref catalog
+	http://host:port/viz-bin/aserver.cgi
+	This URL is used to mimic CDS a server output as needed by SCAMP astroref catalog
 

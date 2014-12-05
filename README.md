@@ -31,16 +31,23 @@ __Installing__
 Edit config/config.cfg and adapt to your needs some parameters.
 Mandatory changes are:
 ```python
+#MPC operation mode
 use_fix_mpcorb='True'
-home_dir=/home/nacho/work/CatServer [HOME of scrips]
-base_dir=%(home_dir)s/../DATA [all DATA home]
+#HOME of scrips
+home_dir=/home/nacho/work/CatServer
+#Home off all cache and catalog data
+base_dir=%(home_dir)s/../DATA 
 ```
 for use_fix_mpcorb='False' the following setting are also relevant:
 ```python
-date0=2457022.500000 [ Julian Date center date]
-datefrom=2457016.500000  [ Julian Date min. It must be date0-Delta ->symetric from date0]
-dateto=2457028.500000 [ Julian Date max. It must be date0+Delta -> symetric from date0]
-eachdays=50 [propagate MPCORB file every 50 days]
+#center epoch Julian Date
+date0=2457022.500000 
+#Min epoch Julian Date. It must be date0-Delta ->symetric from date0
+datefrom=2457016.500000
+#Max epoch Julian Date. It must be date0+Delta ->symetric from date0
+dateto=2457028.500000
+#propagate stepsize for MPCORB file
+eachdays=50
 ```
 
 Then run `bootstrap.py` . This executable compile and download all needed files.
@@ -71,33 +78,39 @@ When use_fix_mpcorb='False' execute also ./updateMPCORB.py . This script must be
 
 __Using__
 ----------
-CatServer is a regular http server. You visit it below url with your favorite browser. The aim of this server is provide a collection of objects present ina  sky region at given time. Thus date, ra, dec and r (search radio) are mandatory (but they have defaults).
+CatServer is a regular http server. You visit below url with your favorite browser. The aim of this server is provide a collection of objects present in a sky region at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees) are mandatory.
 
-At the present times you can get stars from UCAC4 catalog, satellites 
-or know asteroids.
+At the present times you can get stars from UCAC4 catalog, satellites or know asteroids. Output file format {format} can take this values: html,csv,excel,fits or mpc
 
 ####**URL syntax:**
 
-####Help (this file):
+####Help:
+`http://host:port/`
 `http://host:port/help`
 
 ####Stars in UCAC4 catalog:
-`http://host:port/ucac4?format={format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}`
-`http://host:port/viz-bin/aserver.cgi?format={output format}&ra={RA degrees}&dec={DEC degrees}&r={degrees}`
+`http://host:port/ucac4?format={format}&ra={RA}&dec={DEC}&r={degrees}`
 
 ####Satellites:
-`http://host:port/sat?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}`
+`http://host:port/sat?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}`
 
 ####Asteroids:
-`http://host:port/mpc?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA degrees}&dec={DEC degrees}&r={degrees}`
-`http://host:port/mpcsearch?format={format}&date={YYYY-MM-DD HH:MM:SS}&key={asteroid key}`
+`http://host:port/mpc?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}`
+`http://host:port/mpcsearch?format={format}&date={YYYY-MM-DD HH:MM:SS}&key={key}`
 
-Implemented {format} can take this values: html,csv,excel,fits or mpc  
 
 ###NOTES:
+Default values:
+>date={present time}
+>ra=0
+>dec=0
+>r=1
+>format=html
+
 Aditional url:
 
-`{server basename}/viz-bin/aserver.cgi`
+>`http://host:port/viz-bin/aserver.cgi`
 
-This URL is used to mimic CDS a server output as needed by SCAMP astroref catalog
+>This URL is used to mimic CDS a server output as needed by SCAMP astroref catalog
+
 

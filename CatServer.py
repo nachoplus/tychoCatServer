@@ -62,6 +62,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Respond to a GET request."""
         services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp}
         service=urlparse(self.path).path[1:]
+	#print service
         qs = parse_qs(urlparse(self.path).query)
         services=list(services_cmd.keys())
         #print services
@@ -77,6 +78,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 	if service=='viz-bin/aserver.cgi':
 		#Special handler to mimic UCAC4 vizier server import re
+		print "VIZ:",urlparse(self.path).query
 	        response=services_cmd[service](urlparse(self.path).query)
 	else:
 	        response=services_cmd[service](qs)
@@ -100,7 +102,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.sendOutput(data,formatType)
 
     def ucac4scamp(self,params):
-	#%s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
+	#SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
+	#SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
+	SCAMP="2.0.4"
+	print params	
 	params=params.split('&')
 	print params	
 
@@ -123,17 +128,23 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	dec=sig*float(radec[1])
 
 	r=float(params[4])/60.
-	limits=params[6].split(',')
-	magmin=int(float(limits[1]))
-	magmax=int(float(limits[0]))
-	maxstars=int(params[8])
 
-	print "RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars
         s=ucac4server.ucac4server()
         data=s.load(ra,dec,r)
-	flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
-	data=data[flt]
-        self.sendOutput(data,'scamp')
+
+	if SCAMP=="2.0.4":
+		maxstars=int(params[6])
+		print "RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars
+		self.sendOutput(data,'scamp')
+	else:
+		limits=params[6].split(',')
+		magmin=int(float(limits[1]))
+		magmax=int(float(limits[0]))
+		maxstars=int(params[8])
+		print "RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars
+		flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
+		data=data[flt]
+	        self.sendOutput(data,'scamp')
 
 
     def sat(self,params):
@@ -202,9 +213,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	                out += str(f)+','
         return out
 
-#TO BE FIXED. Something is wrong with this pyfits version
+# FIXED. Something is wrong with this pyfits version and StringIO
     def fitsOutput(self,data):
-        out = StringIO()
+        #out = StringIO()
+	out = open(cfg['base_dir']+'/tmp.fit','wb')
 	columns=[]
 
 
@@ -228,11 +240,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	hdu = pyfits.PrimaryHDU()
 	thdulist = pyfits.HDUList([])
 	thdulist.append(tbhdu)
-	print thdulist
-	print tbhdu
-	print out
 	thdulist.writeto(out, clobber=True)
-        out.seek(0)
+        out.close()
+	out = open(cfg['base_dir']+'/tmp.fit','rb')
         the_stream = out.read()   # here is your file content
         out.close()
         return the_stream	

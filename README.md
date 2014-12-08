@@ -2,14 +2,14 @@ __CatServer__
 ========
 Introduction
 ------------
-CatServer is a http ephemerids server. Its aim is provide a collection of objects present in a sky region at given time. CatServer was development for LSSS (http://www.lasagraskysurvey.es/) NEO hutting project.
+CatServer is a http ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. CatServer was development for LSSS (http://www.lasagraskysurvey.es/) NEO hutting project.
 
-At this time its provide ephemerids for:
+At this time CatServer provide ephemerids for:
 * satellites in NORAD database. (More than 15000 objects)
 * know asteroids in Minor Planet Center (MPC). (More than 650000 asteroids)
 * UCAC4 star catalog.(over 113 million objects)
 
-In the near future its wil be provide also:
+In the near future it  will be provide also:
 * Planets and natural satellite (to be done)
 * Hiperleda galaxies (to be done)
 
@@ -36,7 +36,7 @@ use_fix_mpcorb='True'
 #HOME of scrips
 home_dir=/home/nacho/work/CatServer
 #Home off all cache and catalog data
-base_dir=%(home_dir)s/../DATA 
+base_dir=%(home_dir)s/../var/catserver 
 ```
 for use_fix_mpcorb='False' the following setting are also relevant:
 ```python
@@ -76,7 +76,7 @@ Go to the CatServer home_dir and execute ./CatServer.py
 When use_fix_mpcorb='False' execute also ./updateMPCORB.py . This script must be running all the time in order to update the database with new asteroids.
 
 
-__Using__
+__Use__
 ----------
 CatServer is a regular http server. You visit below url with your favorite browser. The aim of this server is provide a collection of objects present in a sky region at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees) are mandatory.
 

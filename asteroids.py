@@ -269,12 +269,16 @@ class MPCephem:
         dateDistance=round((jd-datestart)/eachdays)
         mpcorbprefix="%0d" % (datestart+dateDistance*eachdays)
         print datestart,dateDistance,mpcorbprefix
+
 	if cfg['use_fix_mpcorb']=='True':
 	        self.mpcorbfile=dir_dest+'/FIX_MPCORB.DAT'
-        	self.guestDB=dir_guestDB+'/FIX_guest_'+getToday()+".p"
+        	#self.guestDB=dir_guestDB+'/FIX_guest_'+getToday()+".p"
+		dayPrefix=d[:10]
+		self.guestDB=dir_guestDB+'/FIX_guest_'+dayPrefix+".p"
 	else:
 	        self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
         	self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
+
         print self.mpcorbfile
        	print self.guestDB
 	return jd

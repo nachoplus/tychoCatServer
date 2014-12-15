@@ -8,10 +8,11 @@ At this time CatServer provide ephemerids for:
 * satellites in NORAD database. (More than 15000 objects)
 * know asteroids in Minor Planet Center (MPC). (More than 650000 asteroids)
 * UCAC4 star catalog.(over 113 million objects)
-
-In the near future it  will be provide also:
+* Hipparcos 2 start catalog
+* NGC catalog
+* Hyperleda galaxies catalog
 * Planets and natural satellite (to be done)
-* Hiperleda galaxies (to be done)
+
 
 The output format will be html,csv,excel,fits or mpc 
 
@@ -98,6 +99,14 @@ At the present times you can get stars from UCAC4 catalog, satellites or know as
 `http://host:port/mpc?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}`
 `http://host:port/mpcsearch?format={format}&date={YYYY-MM-DD HH:MM:SS}&key={key}`
 
+####HIPPARCOS2 start catalog:
+`http://host:port/hip2?format={format}&ra={RA}&dec={DEC}&r={degrees}`
+
+####Hyperleda galaxies catalog:
+`http://host:port/hyperleda?format={format}&ra={RA}&dec={DEC}&r={degrees}`
+
+####NGC catalog:
+`http://host:port/ngc?format={format}&ra={RA}&dec={DEC}&r={degrees}`
 
 ###NOTES:
 Default values:

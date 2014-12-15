@@ -25,6 +25,15 @@ Asteroids:
 	http://host:port/mpc?format={format}&date={YYYY-MM-DD HH:MM:SS}&ra={RA}&dec={DEC}&r={degrees}
 	http://host:port/mpcsearch?format={format}&date={YYYY-MM-DD HH:MM:SS}&key={key}
 
+HIPPARCOS 2 catalog:
+	http://host:port/hip2?format={format}&ra={RA}&dec={DEC}&r={degrees}
+
+Hyperleda galaxies catalog:
+	http://host:port/hyperleda?format={format}&ra={RA}&dec={DEC}&r={degrees}
+
+NGC catalog:
+	http://host:port/ngc?format={format}&ra={RA}&dec={DEC}&r={degrees}
+
 Implemented {format} can take this values: html,csv,excel,fits or mpc
 
 NOTES:

@@ -22,6 +22,7 @@ import re
 import ucac4server
 import satellite
 import asteroids
+import staticcat
 
 import xlsxwriter
 from StringIO import StringIO
@@ -60,7 +61,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Respond to a GET request."""
-        services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp}
+        services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp,'hyperleda':self.hyperleda,'hip2':self.hip2,'ngc':self.ngc}
         service=urlparse(self.path).path[1:]
 	#print service
         qs = parse_qs(urlparse(self.path).query)
@@ -91,6 +92,21 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         with open('helptext.txt','r') as f:
             data=f.read()
         self.wfile.write(data)
+
+    def static(self,params,catalog):
+        formatType,date,ra,dec,r,Type =self.standardParams(params)
+        s=staticcat.staticCat(catalog)
+        data=s.get(ra,dec,r)
+        self.sendOutput(data,formatType)
+
+    def hyperleda(self,params):
+	self.static(params,'hyperleda')
+
+    def hip2(self,params):
+	self.static(params,'hip2')
+
+    def ngc(self,params):
+	self.static(params,'ngc')
 
     def ucac4(self,params):
         formatType,date,ra,dec,r,Type =self.standardParams(params)

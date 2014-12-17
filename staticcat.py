@@ -25,7 +25,7 @@ class staticCat():
 	h=r*2
         catalog=self.catalogFile
 	f=pyfits.open(cfg[catalog])
-	data=f[1].data
+	data=np.array(f[1].data)
 
         decmin=dec-r
         if decmin<=-90:

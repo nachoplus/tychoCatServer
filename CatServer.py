@@ -26,6 +26,7 @@ import staticcat
 
 import xlsxwriter
 from StringIO import StringIO
+import cPickle as pickle
 
 
 
@@ -344,6 +345,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	return out
 
+    def	pickleOutput(self,data):
+	return pickle.dumps(data)
+
     def sendOutput(self,data,formatType):
         self.send_response(200)
 
@@ -386,6 +390,12 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-Length",str(size))
             contentType="application/xlsx"
             self.send_header("Content-Disposition", 'attachment;filename=output.xlsx')
+
+        if formatType.startswith('pickle'):
+            output=self.pickleOutput(data)
+	    size=len(output)	
+            self.send_header("Content-Length",str(size))
+            contentType="application/python-pickle"
 
         self.send_header("Content-type",contentType)
         self.end_headers()

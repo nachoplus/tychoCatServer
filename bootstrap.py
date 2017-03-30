@@ -13,6 +13,10 @@ def exe(cmd):
 	#print res
 	return res
 
+def dependens():
+	exe("sudo apt-get install python-pip python-dev python-numpy python-xlsxwriter python-simplejson swig unzip")
+	exe("sudo pip install pyfits")
+
 def ucac4files():
 	print "Step 1. =============================="
 	print "First download UCAC4 catalog files:"
@@ -74,7 +78,7 @@ def pyephem():
 	print "Installing modified version of pyephem"
 	org_path=os.getcwd()
 	os.chdir('pyephem/pyephem-3.7.5.1')
-	cmd='python setup.py install'
+	cmd='sudo python setup.py install'
 	exe(cmd)
 	os.chdir(org_path)
 
@@ -85,6 +89,7 @@ if __name__ == '__main__':
 	print "CHECK your data_dir in config/main.cfg file!!!"
 	print "================================================"
 	print
+	dependens()
 	ucac4src()
 	ucac4files()
 	lunar()

@@ -62,7 +62,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Respond to a GET request."""
-        services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp,'hyperleda':self.hyperleda,'hip2':self.hip2,'ngc':self.ngc}
+        services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp,'hyperleda':self.hyperleda,'hip2':self.hip2,'ngc':self.ngc,'favicon.ico':self.favicon}
         service=urlparse(self.path).path[1:]
 	#print service
         qs = parse_qs(urlparse(self.path).query)
@@ -89,8 +89,15 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/text")
         self.end_headers()
-        formatType,date,ra,dec,r,Type =self.standardParams(params)
         with open('helptext.txt','r') as f:
+            data=f.read()
+        self.wfile.write(data)
+
+    def favicon(self,params):
+        self.send_response(200)
+        self.send_header("Content-type", "image/x-icon")
+        self.end_headers()
+        with open('favicon.ico','r') as f:
             data=f.read()
         self.wfile.write(data)
 

@@ -34,7 +34,7 @@ Hyperleda galaxies catalog:
 NGC catalog:
 	http://host:port/ngc?format={format}&ra={RA}&dec={DEC}&r={degrees}
 
-Implemented {format} can take this values: html,csv,excel,fits or mpc
+Implemented {format} can take this values: html,csv,excel,fits, mpc or pickle
 
 NOTES:
 

@@ -70,6 +70,12 @@ Now, depending of the setting of 'use_fix_mpcorb':
 * use_fix_mpcorb='True' => Download MCPORB.DAT rename to FIX_MPCORB.DAT and put in the 'datempcorb' dir
 * use_fix_mpcorb='False'=> Run updaterCatServer.py to create the firts cache. The run take very very very long time depending of your dateto/datefrom may be several days!!
 
+__TODO__
+* Accept observatory code or coords in the url. At this time observatory is fixed in main.cfg
+* Improving bootstrap.py 
+* Create information page telling what database is ussing
+
+
 __Run the server__
 ----------
 

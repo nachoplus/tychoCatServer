@@ -7,6 +7,3 @@ cpickle
 os
 threading2
 urlparse2
-
-
-

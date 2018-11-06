@@ -147,9 +147,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	#ra=float(params[2].split(sep)[0])
 	#dec=sig*float(params[2].split(sep)[1])
 
-	radec=re.split(sep,params[2].strip())
+	#radec=re.split(sep,params[2].strip())
+        radec=params[2].strip().split(',')
 	ra=float(radec[0])
-	dec=sig*float(radec[1])
+	#dec=sig*float(radec[1])
+        dec=float(radec[1])
 
 	r=float(params[4])/60.
 

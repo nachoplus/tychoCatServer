@@ -9,7 +9,6 @@ matrix:
           sudo: false
 # command to install dependencies
 install:
-  - sudo apt-get install gcc
   - pip install --upgrade setuptools
   - pip install -r requirements.txt
   - pip install .

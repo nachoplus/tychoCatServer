@@ -1,9 +1,6 @@
 DateTime
-math
 pyfits
 regex
 Xlsxwriter
-cpickle
-os
 threading2
 urlparse2

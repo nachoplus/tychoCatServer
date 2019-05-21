@@ -22,7 +22,7 @@ class satEphem():
     def get(self,date):
         self.loadTLEfile(date)
         self.setObserver(lon=cfgOBS["lon"],lat=cfgOBS["lat"],elev=cfgOBS["elev"])
-        print "DATE:",date
+        print("DATE:",date)
         self.setDate(date)
         self.pos=self.threadCompute(self.TLEs,delta=ephem.second)
         return self.pos
@@ -42,7 +42,7 @@ class satEphem():
 
     def setDate(self,date):
         self.here.date=ephem.date(date)
-        print ephem.localtime(self.here.date)
+        print(ephem.localtime(self.here.date))
 
 
 
@@ -63,11 +63,11 @@ class satEphem():
 	            sat=ephem.readtle(lines[0],lines[1],lines[2])
 	            sat.compute(self.here)
 	    except:
-		    print "ERROR computing or reading TLE:\n",lines
+		    print("ERROR computing or reading TLE:\n",lines)
 		    continue
 
             if sat.range_velocity==0:
-                print "FAIL to compute Sat:",sat.name,self.here.date
+                print("FAIL to compute Sat:",sat.name,self.here.date)
                 continue
 
             ra  =sat.ra*180/pi
@@ -134,10 +134,10 @@ class satEphem():
 	minIndex=distance.index(minD)
 	BetterDay=dirs[minIndex]
 	#print minD,minIndex,dirs[minIndex]
-	print "TLE for:",d,"Best available",BetterDay
+	print("TLE for:",d,"Best available",BetterDay)
         self.tlefile=dir_dest+'/'+BetterDay
         nrec=self.readTLEfile(self.tlefile)
-        print "TLE from:",self.tlefile,nrec," REG LOADED"
+        print("TLE from:",self.tlefile,nrec," REG LOADED")
 
     def downloadTLEfile(self):
 	'''
@@ -149,14 +149,14 @@ class satEphem():
         tlefile=dir_dest+'/'+getToday()+".TLE"
 
         if not os.path.isfile(tlefile):
-            print "TLE %s not exit. Downloading" % os.path.basename(tlefile)
+            print("TLE %s not exit. Downloading" % os.path.basename(tlefile))
             res=commands.getoutput("wget -c "+cfg["tleurl"])
-            print res
-            print os.path.basename(cfg["tleurl"])
+            print(res)
+            print(os.path.basename(cfg["tleurl"]))
             res=commands.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
-            print res
+            print(res)
             res=commands.getoutput("mv ALL_TLE.TXT "+tlefile)
-            print res
+            print(res)
 	    os.remove(os.path.basename(cfg["tleurl"]))
 	    '''
             #Clasif TLE
@@ -171,7 +171,7 @@ class satEphem():
             print res
 	    '''
 	else:
-            print "TLE %s already downloaded" % os.path.basename(tlefile)
+            print("TLE %s already downloaded" % os.path.basename(tlefile))
 
 
 
@@ -232,7 +232,7 @@ class satEphem():
         ncores=multiprocessing.cpu_count()
 
         if len(satellites)<=ncores*10:
-            print "Not to much satellites(%d). Going single thread" % len(satellites)
+            print("Not to much satellites(%d). Going single thread" % len(satellites))
             return self.compute(satellites,delta)
 
         chunk_size=len(satellites)/ncores
@@ -241,10 +241,10 @@ class satEphem():
 	if len(satellites) % ncores !=0:
         	satellites_chunks.append(satellites[chunk_size*ncores:])
 
-        print "CORES/AST/CHUNK/cho SIZE:",ncores,len(satellites),chunk_size,len(satellites_chunks)
+        print("CORES/AST/CHUNK/cho SIZE:",ncores,len(satellites),chunk_size,len(satellites_chunks))
 
         try:
-            print "Creating Threads ..."
+            print("Creating Threads ...")
             threadsPool=[]
             #define threads
 
@@ -270,17 +270,17 @@ class satEphem():
                     continue
                 final_result=np.hstack((final_result,r))
 
-            print len(final_result)
-            print "%d compute Threads.Processing %d x %d satellites" % (ncores,ncores,chunk_size)
+            print(len(final_result))
+            print("%d compute Threads.Processing %d x %d satellites" % (ncores,ncores,chunk_size))
             return final_result
         except Exception as e:
-            print "Thread error..."
-            print e
+            print("Thread error...")
+            print(e)
 
 
 if __name__ == '__main__':
     s=satEphem()
     data=s.filterSat("2014-09-21 01:00",25,-6.3,2.0)
-    print data
+    print(data)
     #flt=(data['ELEVATION']>=1E8)
     #print data[flt]

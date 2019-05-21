@@ -1,8 +1,7 @@
 numpy
 DateTime
-pyfits
+astropy
 regex
 Xlsxwriter
-threading2
 urlparse2
 simplejson

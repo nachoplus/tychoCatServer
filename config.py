@@ -35,7 +35,7 @@ def getToday():
     if len(cfg_general['force_day'])==0:
         return today.strftime("%y-%m-%d")
     else:
-        print "Forcing Date",cfg_general['force_day']
+        print("Forcing Date",cfg_general['force_day'])
         return cfg_general['force_day']
 
 def writeCfg(directory):
@@ -46,10 +46,10 @@ def writeCfg(directory):
 
 def printCfg():
     for section in config.sections():
-        print
-        print "================ "+section+" ================"
+        print()
+        print("================ "+section+" ================")
         for item in config.items(section):
-            print item
+            print(item)
 
 if __name__ == '__main__':
 	printCfg()

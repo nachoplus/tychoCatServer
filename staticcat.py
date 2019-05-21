@@ -8,7 +8,7 @@
 .. moduleauthor:: Nacho Mas <mas.ignacio@gmail.com>
 
 """
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 import os
 from config import *
@@ -51,4 +51,4 @@ class staticCat():
 
 if __name__ == '__main__':
     s=hyperleda()
-    print s.get(50,-16.3,2.0)
+    print(s.get(50,-16.3,2.0))

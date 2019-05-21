@@ -16,7 +16,7 @@ from SocketServer import ThreadingMixIn
 import threading
 import datetime
 from math import sqrt
-import pyfits
+import astropy.io.fits as pyfits
 import re
 
 import ucac4server
@@ -80,7 +80,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 	if service=='viz-bin/aserver.cgi':
 		#Special handler to mimic UCAC4 vizier server import re
-		print "VIZ:",urlparse(self.path).query
+		print("VIZ:",urlparse(self.path).query)
 	        response=services_cmd[service](urlparse(self.path).query)
 	else:
 	        response=services_cmd[service](qs)
@@ -129,9 +129,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	#SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
 	#SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
 	SCAMP="2.0.4"
-	print params	
+	print(params)
 	params=params.split('&')
-	print params	
+	print(params)	
 
 	
 	if params[2].find('%2b')>=0 or params[2].find('+') >=0:
@@ -160,14 +160,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	if SCAMP=="2.0.4":
 		maxstars=int(params[6])
-		print "RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars
+		print("RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars)
 		self.sendOutput(data,'scamp')
 	else:
 		limits=params[6].split(',')
 		magmin=int(float(limits[1]))
 		magmax=int(float(limits[0]))
 		maxstars=int(params[8])
-		print "RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars
+		print("RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars)
 		flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
 		data=data[flt]
 	        self.sendOutput(data,'scamp')
@@ -192,7 +192,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         formatType,date,ra,dec,r,astType =self.standardParams(params)
         keys=params.get('key',[''])
         keys=map(lambda x:x.ljust(7),keys)
-        print "SEARCHING:",keys
+        print("SEARCHING:",keys)
         data=self.mpcEngine.search(keys,date,r)
         self.sendOutput(data,formatType)
 
@@ -408,10 +408,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.send_header("Content-type",contentType)
         self.end_headers()
-	print "START SENDING",size
+	print("START SENDING",size)
 	self.wfile.write(output)
         #[self.wfile.write(l) for l in output]
-	print "END SENDING"
+	print("END SENDING")
 
     def standardParams(self,params):
         formatType=params.get('format',['html'])[0]
@@ -447,11 +447,11 @@ if __name__ == '__main__':
     server_class = ThreadedHTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     httpd.daemon=True	
-    print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
+    print(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
     if cfg['use_fix_mpcorb']=='True':
-	print "WARNING: use_fix_mpcorb='True'."
-	print "All calculation will be done for a FIX_MPCORB.DAT"
-	print "Calculation for distant dates may be inacurate."
+	print("WARNING: use_fix_mpcorb='True'.")
+	print("All calculation will be done for a FIX_MPCORB.DAT")
+	print("Calculation for distant dates may be inacurate.")
 
 
     try:
@@ -459,4 +459,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER)
+    print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))

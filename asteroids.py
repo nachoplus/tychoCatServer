@@ -9,7 +9,7 @@ from subprocess import Popen,call
 from threading import Thread
 import multiprocessing
 import simplejson
-import pyfits
+import astropy.io.fits as pyfits
 import numpy as np
 import cPickle as pickle
 import datetime
@@ -39,22 +39,22 @@ class MPCephem:
 	        self.getMPCORB(date)
 	        self.guestPos=pickle.load(open( self.guestDB, "rb" ) )
 	        self.guestDate=ephem.date(date)
-		print "Load guestDB",self.guestDB
-		print "self.guestDate",self.guestDate
-	        print "ASTEROID INIT. Number:",len(self.guestPos)
+		print("Load guestDB",self.guestDB)
+		print("self.guestDate",self.guestDate)
+	        print("ASTEROID INIT. Number:",len(self.guestPos))
 	else:
 		self.guestPos=np.asarray([])
-	        print "FAIL TO LOAD ASTEROID GUESTDB."
+	        print("FAIL TO LOAD ASTEROID GUESTDB.")
 		exit(1)
 
 
     def loadMPCorb(self,filename):
 	if filename==self.loadedMPCORB:
-		print "MPCORB %s already load" % filename
+		print("MPCORB %s already load" % filename)
 		return
 
         asteroid=dict()
-        print "Reading:",filename
+        print("Reading:",filename)
         MPC = open(filename, "r")
         content=MPC.readlines()
         #skip headers comments
@@ -80,10 +80,10 @@ class MPCephem:
 			if len(ast)>80:
 	                        asteroid[designation] = tuple([0e0,0.15]+ast[20:104].split())
                 except:
-                    print "Error loading line"
+                    print("Error loading line")
                     pass
 
-        print "\nMPC catalogue has been read. The total of asteroids ",len(asteroid), " of ",n
+        print("\nMPC catalogue has been read. The total of asteroids ",len(asteroid), " of ",n)
 
         self.asteroids = asteroid
 	self.loadedMPCORB=filename
@@ -105,7 +105,7 @@ class MPCephem:
 
     def setDate(self,date):
         self.here.date=ephem.date(date)
-        print ephem.localtime(self.here.date)
+        print(ephem.localtime(self.here.date))
         #print("Observer info: \n", self.here)
         self.sun.compute(self.here)
 
@@ -227,7 +227,7 @@ class MPCephem:
                 astPos.append((key,precovery,type_,ldate,ddate,obs_date,ra,dec,vmag,sp,pa,phang,a.earth_distance,a.sun_distance,a.elong,sun_separation))
 		
             except:
-                print key," fail to compute\n",value
+                print(key," fail to compute\n",value)
 
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
@@ -250,17 +250,17 @@ class MPCephem:
 
         d=d.strftime("%Y-%m-%d")
         jd=ephem.date(d)+dubliJDoffset
-	print date,jd
+	print(date,jd)
 	if not cfg['use_fix_mpcorb']=='True':
           if jd>=dateto:
-            print "date %s is outside off orbital DB range.\nDATETO %s" % (jd,dateto)
+            print("date %s is outside off orbital DB range.\nDATETO %s" % (jd,dateto))
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
 	    return
 
 
           if jd<=datefrom:
-            print "date %s is outside off orbital DB range.\nDATEFROM %s" % (jd,datefrom)
+            print("date %s is outside off orbital DB range.\nDATEFROM %s" % (jd,datefrom))
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
 	    return
@@ -268,7 +268,7 @@ class MPCephem:
 	jd=int(jd)
         dateDistance=round((jd-datestart)/eachdays)
         mpcorbprefix="%0d" % (datestart+dateDistance*eachdays)
-        print datestart,dateDistance,mpcorbprefix
+        print(datestart,dateDistance,mpcorbprefix)
 
 	if cfg['use_fix_mpcorb']=='True':
 	        self.mpcorbfile=dir_dest+'/FIX_MPCORB.DAT'
@@ -279,18 +279,18 @@ class MPCephem:
 	        self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
         	self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
 
-        print self.mpcorbfile
-       	print self.guestDB
+        print(self.mpcorbfile)
+       	print(self.guestDB)
 	return jd
 
     def getMPCORB(self,date=''):
 	self.setNames(date)
-        print self.mpcorbfile
+        print(self.mpcorbfile)
         if not os.path.isfile(self.mpcorbfile):
-            print "MPCORB file not exit:",self.mpcorbfile
+            print("MPCORB file not exit:",self.mpcorbfile)
             return
         else:
-            print "MPCORB file found:",self.mpcorbfile
+            print("MPCORB file found:",self.mpcorbfile)
 
         self.loadMPCorb(self.mpcorbfile)
 
@@ -306,7 +306,7 @@ class MPCephem:
 	#include 1º for parallax errors (max at moon distant)
 	#and speed_*24*60 arcsec to take into acount asteroids displacement
 	margin=1+speed_*24.*60./3600.
-	print "Margin:",margin
+	print("Margin:",margin)
 	r=r+margin
 	
         #data=self.guestPos.copy()
@@ -327,7 +327,7 @@ class MPCephem:
 		ramax=360
 
 
-	print ramin,ramax,decmin,decmax,ra,dec,r
+	print(ramin,ramax,decmin,decmax,ra,dec,r)
 
 	mask=[]
 	for dat in data['TYPE']:
@@ -373,7 +373,7 @@ class MPCephem:
 
 
     def filterMPC(self,date,ra,dec,r,astType=[]):
-	print "date,ra,dec,r",date,ra,dec,r
+	print("date,ra,dec,r",date,ra,dec,r)
         #Check if is need to switch MPCORB.DAT & guestDB
         if ephem.date(date)!=self.guestDate:
             self.init(date)
@@ -447,7 +447,7 @@ class MPCephem:
         self.getMPCORB(date)
 
 
-        print "INIT DB FOR DATE:",date
+        print("INIT DB FOR DATE:",date)
         #lock while computing...
 	with open(lockfile,'w') as f:
 		f.write('lock')	
@@ -478,7 +478,7 @@ class MPCephem:
         '''
         ncores=multiprocessing.cpu_count()
         if len(asteroids)<=ncores*10:
-            print "Not to much asteroids(%d). Going single thread" % len(asteroids)
+            print("Not to much asteroids(%d). Going single thread" % len(asteroids))
             return self.compute(asteroids,delta)
 
         chunk_size=len(asteroids)/ncores
@@ -487,7 +487,7 @@ class MPCephem:
 	if len(asteroids) % ncores !=0:
         	asteroids_chunks.append(dict(asteroids.items()[chunk_size*ncores:]))
 
-        print "CORES/AST/CHUNK/cho SIZE:",ncores,len(asteroids),chunk_size,len(asteroids_chunks)
+        print("CORES/AST/CHUNK/cho SIZE:",ncores,len(asteroids),chunk_size,len(asteroids_chunks))
 
         try:
             #print "Creating Threads ..."
@@ -516,12 +516,12 @@ class MPCephem:
                     continue
                 final_result=np.hstack((final_result,r))
 
-            print len(final_result)
-            print "Processed %d x %d asteroids. " % (ncores,chunk_size)
+            print(len(final_result))
+            print("Processed %d x %d asteroids. " % (ncores,chunk_size))
             return final_result
         except Exception as e:
-            print "Thread error..."
-            print e
+            print("Thread error...")
+            print(e)
 
 
 
@@ -533,7 +533,7 @@ if __name__ == '__main__':
     '''
     m=MPCEphem()
 
-    print mpc.filterMPC("2014-09-13 12:31:38",30.2,12,.2)
-    print mpc.filterMPC("1971-09-14 22:23:09",41.2,-13,1)
-    print mpc.filterMPC("2026-03-14 02:23:09",4.2,-13,1)
+    print(mpc.filterMPC("2014-09-13 12:31:38",30.2,12,.2))
+    print(mpc.filterMPC("1971-09-14 22:23:09",41.2,-13,1))
+    print(mpc.filterMPC("2026-03-14 02:23:09",4.2,-13,1))
 

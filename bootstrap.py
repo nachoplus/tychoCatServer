@@ -78,7 +78,7 @@ def pyephem():
 	print "Installing modified version of pyephem"
 	org_path=os.getcwd()
 	os.chdir('pyephem/pyephem-3.7.5.1')
-	cmd='sudo python setup.py install'
+	cmd='python setup.py install'
 	exe(cmd)
 	os.chdir(org_path)
 
@@ -89,9 +89,9 @@ if __name__ == '__main__':
 	print "CHECK your data_dir in config/main.cfg file!!!"
 	print "================================================"
 	print
-	dependens()
+	#dependens()
 	ucac4src()
-	ucac4files()
+	# ucac4files()
 	lunar()
 	jplEph()
 	pyephem()

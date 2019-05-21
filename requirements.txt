@@ -1,6 +1,8 @@
+numpy
 DateTime
 pyfits
 regex
 Xlsxwriter
 threading2
 urlparse2
+simplejson

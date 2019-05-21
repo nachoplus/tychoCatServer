@@ -1,10 +1,13 @@
-__CatServer__
+__tychoCatServer__
+.. image:: https://travis-ci.org/nachoplus/tychoCatServer.svg
+   :target: https://travis-ci.org/nachoplus/tychoCatServer
+
 ========
 Introduction
 ------------
-CatServer is a http ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. CatServer was development for LSSS (http://www.lasagraskysurvey.es/) NEO hutting project.
+tychoCatServer is a http ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. tychoCatServer was development for LSSS (http://www.lasagraskysurvey.es/) NEO hutting project.
 
-At this time CatServer provide ephemerids for:
+At this time tychoCatServer provide ephemerids for:
 * satellites in NORAD database. (More than 15000 objects)
 * know asteroids in Minor Planet Center (MPC). (More than 650000 asteroids)
 * UCAC4 star catalog.(over 113 million objects)
@@ -35,7 +38,7 @@ Mandatory changes are:
 #MPC operation mode
 use_fix_mpcorb='True'
 #HOME of scrips
-home_dir=/home/nacho/work/CatServer
+home_dir=/home/nacho/work/tychoCatServer
 #Home off all cache and catalog data
 base_dir=%(home_dir)s/../var/catserver 
 ```
@@ -79,13 +82,13 @@ __TODO__
 __Run the server__
 ----------
 
-Go to the CatServer home_dir and execute ./CatServer.py
+Go to the tychoCatServer home_dir and execute ./tychoCatServer.py
 When use_fix_mpcorb='False' execute also ./updateMPCORB.py . This script must be running all the time in order to update the database with new asteroids.
 
 
 __Use__
 ----------
-CatServer is a regular http server. You visit below url with your favorite browser. The aim of this server is provide a collection of objects present in a sky region at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees) are mandatory.
+tychoCatServer is a regular http server. You visit below url with your favorite browser. The aim of this server is provide a collection of objects present in a sky region at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees) are mandatory.
 
 At the present times you can get stars from UCAC4 catalog, satellites or know asteroids. Output file format {format} can take this values: html,csv,excel,fits or mpc
 

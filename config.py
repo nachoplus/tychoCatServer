@@ -3,7 +3,7 @@
 #tychoSuit
 
 import os, sys
-import ConfigParser
+import configparser
 
 
 #Common configuration file
@@ -14,7 +14,7 @@ configpath=os.path.dirname(binpath)+"/config"
 
 
 #Read values from main.cfg
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read(configpath+"/main.cfg")
 cfg_general=config._defaults
 

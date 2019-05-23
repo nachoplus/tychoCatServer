@@ -5,7 +5,7 @@
 
 import ephem
 import numpy as np
-import commands
+import subprocess
 import multiprocessing
 
 
@@ -57,14 +57,14 @@ class satEphem():
 
         astPos=[]
         for i,tle in enumerate(satellites):
-	    #print tle
+            #print tle
             lines=tle.split('\r')[:-1]
-	    try:	
-	            sat=ephem.readtle(lines[0],lines[1],lines[2])
-	            sat.compute(self.here)
-	    except:
-		    print("ERROR computing or reading TLE:\n",lines)
-		    continue
+            try:
+                    sat=ephem.readtle(lines[0],lines[1],lines[2])
+                    sat.compute(self.here)
+            except:
+                    print("ERROR computing or reading TLE:\n",lines)
+                    continue
 
             if sat.range_velocity==0:
                 print("FAIL to compute Sat:",sat.name,self.here.date)
@@ -94,18 +94,18 @@ class satEphem():
             ldate=self.here.date.datetime().strftime('%Y-%m-%d %H:%M:%S')
             ddate="{:18.11f}".format(self.here.date+dubliJDoffset-MJDoffset)
 
-	    #then compute for datetime+delta if delta!=0
-	    if delta !=0:
-		self.here.date+=delta
-	        sat.compute(self.here)
-	        ra_  =sat.a_ra*180/(pi)
-	        dec_ =sat.a_dec*180/pi
-		pa=PA(ra,dec,ra_,dec_)
-		sp=speed(delta,ra,dec,ra_,dec_)
-		self.here.date-=delta
-	    else:
-		pa=np.nan
-		sp=np.nan
+            #then compute for datetime+delta if delta!=0
+            if delta !=0:
+                self.here.date+=delta
+                sat.compute(self.here)
+                ra_  =sat.a_ra*180/(pi)
+                dec_ =sat.a_dec*180/pi
+                pa=PA(ra,dec,ra_,dec_)
+                sp=speed(delta,ra,dec,ra_,dec_)
+                self.here.date-=delta
+            else:
+                pa=np.nan
+                sp=np.nan
 
             astPos.append((sat.name,sat.catalog_number,int_number,ldate,ddate,sat.mag,ra,dec,sp,pa, \
                             sat.az*180/pi,sat.alt*180/pi,sat.range,sat.elevation,sat.range_velocity,sat.eclipsed,epoch))
@@ -113,36 +113,36 @@ class satEphem():
 
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
-	if len(Pos)>0:
-	       	self.result_queue.put(Pos)
+        if len(Pos)>0:
+           self.result_queue.put(Pos)
         return Pos
 
     def loadTLEfile(self,date):
-	'''
-	Chose and load the most apropiate TLE file.
-	'''
-	self.downloadTLEfile()
+        '''
+        Chose and load the most apropiate TLE file.
+        '''
+        self.downloadTLEfile()
         dir_dest=cfg["tledir"]
-	d=ephem.date(date)
-	dirs = os.listdir( dir_dest)	
-	#print dirs
-	days=map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs)
-	#print days
-	distance=map(lambda x:np.abs(d-x),days)
-	#print distance
-	minD=np.min(distance)
-	minIndex=distance.index(minD)
-	BetterDay=dirs[minIndex]
-	#print minD,minIndex,dirs[minIndex]
-	print("TLE for:",d,"Best available",BetterDay)
+        d=ephem.date(date)
+        dirs = os.listdir( dir_dest)
+        #print dirs
+        days=list(map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs))
+        #print days
+        distance=list(map(lambda x:np.abs(d-x),days))
+        #print distance
+        minD=np.min(distance)
+        minIndex=distance.index(minD)
+        BetterDay=dirs[minIndex]
+        #print minD,minIndex,dirs[minIndex]
+        print("TLE for:",d,"Best available",BetterDay)
         self.tlefile=dir_dest+'/'+BetterDay
         nrec=self.readTLEfile(self.tlefile)
         print("TLE from:",self.tlefile,nrec," REG LOADED")
 
     def downloadTLEfile(self):
-	'''
-	Download TLE file of the day and rename
-	'''
+        '''
+        Download TLE file of the day and rename
+        '''
         dir_dest=cfg["tledir"]
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
@@ -150,36 +150,36 @@ class satEphem():
 
         if not os.path.isfile(tlefile):
             print("TLE %s not exit. Downloading" % os.path.basename(tlefile))
-            res=commands.getoutput("wget -c "+cfg["tleurl"])
+            res=subprocess.getoutput("wget -c "+cfg["tleurl"])
             print(res)
             print(os.path.basename(cfg["tleurl"]))
-            res=commands.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
+            res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
             print(res)
-            res=commands.getoutput("mv ALL_TLE.TXT "+tlefile)
+            res=subprocess.getoutput("mv ALL_TLE.TXT "+tlefile)
             print(res)
-	    os.remove(os.path.basename(cfg["tleurl"]))
-	    '''
+            os.remove(os.path.basename(cfg["tleurl"]))
+            '''
             #Clasif TLE
             #http://www.prismnet.com/~mmccants/tles/classfd.zip
             print "Dowloading CLASIF TLE file:",cfg["tleclasifurl"]
-            res=commands.getoutput("wget -c "+cfg["tleclasifurl"])
+            res=subprocess.getoutput("wget -c "+cfg["tleclasifurl"])
             print res
             print os.path.basename(cfg["tleclasifurl"])
-            res=commands.getoutput("unzip "+os.path.basename(cfg["tleclasifurl"]))
+            res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleclasifurl"]))
             print res
-            res=commands.getoutput("cat classfd.tle >> "+self.tlefile)
+            res=subprocess.getoutput("cat classfd.tle >> "+self.tlefile)
             print res
-	    '''
-	else:
+            '''
+        else:
             print("TLE %s already downloaded" % os.path.basename(tlefile))
 
 
 
 
     def readTLEfile(self,url):
-	'''
-	Read the TLE file and group by 3 lines
-	'''
+        '''
+        Read the TLE file and group by 3 lines
+        '''
         self.TLEs=[]
         f=open(url)
         theList=f.read().split('\n')
@@ -202,9 +202,9 @@ class satEphem():
         ramin=(360+ra-r) % 360
         ramax=(360+ra+r) % 360
 
-	if r*2>=360:
-		ramin=0
-		ramax=360
+        if r*2>=360:
+                ramin=0
+                ramax=360
 
 
         if ramin<ramax:
@@ -218,9 +218,9 @@ class satEphem():
 
 
     def filterTLEs(self):
-	'''
-	TODO. Filter by orbital characteris
-	'''
+        '''
+        TODO. Filter by orbital characteris
+        '''
         pass
 
 
@@ -235,11 +235,11 @@ class satEphem():
             print("Not to much satellites(%d). Going single thread" % len(satellites))
             return self.compute(satellites,delta)
 
-        chunk_size=len(satellites)/ncores
+        chunk_size=int(len(satellites)/ncores)
 
-        satellites_chunks=[satellites[x:x+chunk_size] for x in xrange(0, chunk_size*ncores,chunk_size)]
-	if len(satellites) % ncores !=0:
-        	satellites_chunks.append(satellites[chunk_size*ncores:])
+        satellites_chunks=[satellites[x:x+chunk_size] for x in range(0, chunk_size*ncores,chunk_size)]
+        if len(satellites) % ncores !=0:
+                satellites_chunks.append(satellites[chunk_size*ncores:])
 
         print("CORES/AST/CHUNK/cho SIZE:",ncores,len(satellites),chunk_size,len(satellites_chunks))
 

@@ -64,26 +64,26 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """Respond to a GET request."""
         services_cmd={'ucac4':self.ucac4,'sat':self.sat,'mpc':self.mpc,'mpcsearch':self.mpcsearch,'help':self.help,'viz-bin/aserver.cgi':self.ucac4scamp,'hyperleda':self.hyperleda,'hip2':self.hip2,'ngc':self.ngc,'favicon.ico':self.favicon}
         service=urlparse(self.path).path[1:]
-	#print service
+        #print service
         qs = parse_qs(urlparse(self.path).query)
         services=list(services_cmd.keys())
         #print services
         if service not in services:
             services_cmd['help'](qs)
-	    '''	
+            '''
             self.send_response(400)
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write('<h1>Service:'+service+' NOT FOUND</h1>')
             self.wfile.write('Services available:'+str(list(services_cmd.keys())))
-	    ''' 
+            ''' 
             return
-	if service=='viz-bin/aserver.cgi':
-		#Special handler to mimic UCAC4 vizier server import re
-		print("VIZ:",urlparse(self.path).query)
-	        response=services_cmd[service](urlparse(self.path).query)
-	else:
-	        response=services_cmd[service](qs)
+        if service=='viz-bin/aserver.cgi':
+                #Special handler to mimic UCAC4 vizier server import re
+                print("VIZ:",urlparse(self.path).query)
+                response=services_cmd[service](urlparse(self.path).query)
+        else:
+                response=services_cmd[service](qs)
 
     def help(self,params):
         self.send_response(200)
@@ -108,77 +108,77 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.sendOutput(data,formatType)
 
     def hyperleda(self,params):
-	self.static(params,'hyperleda')
+        self.static(params,'hyperleda')
 
     def hip2(self,params):
-	self.static(params,'hip2')
+        self.static(params,'hip2')
 
     def ngc(self,params):
-	self.static(params,'ngc')
+        self.static(params,'ngc')
 
     def ucac4(self,params):
         formatType,date,ra,dec,r,Type =self.standardParams(params)
         s=ucac4server.ucac4server()
-	#limit area to 10º to avoid overheads
-	if r>10:
-		r=10
+        #limit area to 10º to avoid overheads
+        if r>10:
+                r=10
         data=s.get(ra,dec,r)
         self.sendOutput(data,formatType)
 
     def ucac4scamp(self,params):
-	#SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
-	#SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
-	SCAMP="2.0.4"
-	print(params)
-	params=params.split('&')
-	print(params)	
+        #SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
+        #SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
+        SCAMP="2.0.4"
+        print(params)
+        params=params.split('&')
+        print(params)
 
-	
-	if params[2].find('%2b')>=0 or params[2].find('+') >=0:
-		sep='%2b|%2b|\+'		
-		sig=1
-	elif params[2].find('%2d') >=0 or params[2].find('-') >=0:
-		sep='%2d|%2D|\-'
-		sig=-1
-	elif params[2].find('%20')>=0 or params[2].find(' ') >=0:
-		sep='%20| '
-		sig=1
+        
+        if params[2].find('%2b')>=0 or params[2].find('+') >=0:
+                sep='%2b|%2b|\+'
+                sig=1
+        elif params[2].find('%2d') >=0 or params[2].find('-') >=0:
+                sep='%2d|%2D|\-'
+                sig=-1
+        elif params[2].find('%20')>=0 or params[2].find(' ') >=0:
+                sep='%20| '
+                sig=1
 
-	#ra=float(params[2].split(sep)[0])
-	#dec=sig*float(params[2].split(sep)[1])
+        #ra=float(params[2].split(sep)[0])
+        #dec=sig*float(params[2].split(sep)[1])
 
-	#radec=re.split(sep,params[2].strip())
+        #radec=re.split(sep,params[2].strip())
         radec=params[2].strip().split(',')
-	ra=float(radec[0])
-	#dec=sig*float(radec[1])
+        ra=float(radec[0])
+        #dec=sig*float(radec[1])
         dec=float(radec[1])
 
-	r=float(params[4])/60.
+        r=float(params[4])/60.
 
         s=ucac4server.ucac4server()
         data=s.load(ra,dec,r)
 
-	if SCAMP=="2.0.4":
-		maxstars=int(params[6])
-		print("RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars)
-		self.sendOutput(data,'scamp')
-	else:
-		limits=params[6].split(',')
-		magmin=int(float(limits[1]))
-		magmax=int(float(limits[0]))
-		maxstars=int(params[8])
-		print("RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars)
-		flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
-		data=data[flt]
-	        self.sendOutput(data,'scamp')
+        if SCAMP=="2.0.4":
+                maxstars=int(params[6])
+                print("RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars)
+                self.sendOutput(data,'scamp')
+        else:
+                limits=params[6].split(',')
+                magmin=int(float(limits[1]))
+                magmax=int(float(limits[0]))
+                maxstars=int(params[8])
+                print("RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars)
+                flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
+                data=data[flt]
+                self.sendOutput(data,'scamp')
 
 
     def sat(self,params):
         formatType,date,ra,dec,r,Type =self.standardParams(params)
         satEngine=satellite.satEphem()
         data=satEngine.filterSat(date,ra,dec,r)
-	#flt=(data['SPEED']>=20000) 
-	#data=data[flt]
+        #flt=(data['SPEED']>=20000) 
+        #data=data[flt]
         self.sendOutput(data,formatType)
 
     def mpc(self,params):
@@ -200,7 +200,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def htmlOutput(self,data):
         out='<html>'
         out +='<head><style>'
-	css=open("lasagra.css",'r')
+        css=open("lasagra.css",'r')
         out +=css.read()
         out +='</style></head>'
         out +="<div class='lasagrastyle'><table>"
@@ -233,45 +233,45 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         out +='\n'
         for d in data:
             for f,is_last in last_flagged(d):
-		if is_last:
-	                out += str(f)+'\n'
-		else:
-	                out += str(f)+','
+                if is_last:
+                        out += str(f)+'\n'
+                else:
+                        out += str(f)+','
         return out
 
 # FIXED. Something is wrong with this pyfits version and StringIO
     def fitsOutput(self,data):
         #out = StringIO()
-	out = open(cfg['base_dir']+'/tmp.fit','wb')
-	columns=[]
+        out = open(cfg['base_dir']+'/tmp.fit','wb')
+        columns=[]
 
 
         for i,t in enumerate(data.dtype.names):
-		#print data.dtype[i],data.dtype[i].char
-		#numpy to fits type casting
-		if np.issubdtype(data.dtype[i], float):
-			f='D'
-		elif data.dtype[i].char == 'S' or data.dtype[i].char == 'a':
-			f='A'+str(data.dtype[i].itemsize)
-		elif data.dtype[i].char == 'i' or data.dtype[i].char == 'u' or data.dtype[i].char == 'h':
-			f='I'
-		elif data.dtype[i].char == '?':
-			f='L'
-		columns.append(pyfits.Column(name=t,format=f))
+                #print data.dtype[i],data.dtype[i].char
+                #numpy to fits type casting
+                if np.issubdtype(data.dtype[i], float):
+                        f='D'
+                elif data.dtype[i].char == 'S' or data.dtype[i].char == 'a':
+                        f='A'+str(data.dtype[i].itemsize)
+                elif data.dtype[i].char == 'i' or data.dtype[i].char == 'u' or data.dtype[i].char == 'h':
+                        f='I'
+                elif data.dtype[i].char == '?':
+                        f='L'
+                columns.append(pyfits.Column(name=t,format=f))
 
-	tbhdu=pyfits.new_table(columns)
-	#print columns
-	tbhdu.data= np.array(data).view(tbhdu._data_type)
+        tbhdu=pyfits.new_table(columns)
+        #print columns
+        tbhdu.data= np.array(data).view(tbhdu._data_type)
 
-	hdu = pyfits.PrimaryHDU()
-	thdulist = pyfits.HDUList([])
-	thdulist.append(tbhdu)
-	thdulist.writeto(out, clobber=True)
+        hdu = pyfits.PrimaryHDU()
+        thdulist = pyfits.HDUList([])
+        thdulist.append(tbhdu)
+        thdulist.writeto(out, clobber=True)
         out.close()
-	out = open(cfg['base_dir']+'/tmp.fit','rb')
+        out = open(cfg['base_dir']+'/tmp.fit','rb')
         the_stream = out.read()   # here is your file content
         out.close()
-        return the_stream	
+        return the_stream
 
 
 
@@ -334,105 +334,105 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return the_stream
 
     def scampOutput(self,data):
-	'''
-	Special output to mimic CDS Strasbourg server output
-	as need by scamp refcatlog.
-	Not finished but enough to work with scamp	
-	'''
-	out="#======== UCAC4 server (2014-09-25, V0.01) ======== LA SAGRA mimic CDS, Strasbourg ========\n"
-	out+="#Center: dummy dummy\n"
-	out+='#UCAC4    |    RA  (ICRS) Dec     +/- +/-  mas  EpRA    EpDE  | f.mag  a.mag  +/- |of db| Na  Nu  Cu| pmRA(mas/yr)pmDE  +/-  +/-|MPOS1      UCAC2      Tycho-2    |     2Mkey   Jmag  +/-:cq   Hmag  +/-:cq   Kmag  +/-:cq|  Bmag:1s.   Vmag:1s.   gmag:1s.   rmag:1s.   imag:1s.|gc.HAbhZBLNS|LED 2MX|;     r(")\n'
+        '''
+        Special output to mimic CDS Strasbourg server output
+        as need by scamp refcatlog.
+        Not finished but enough to work with scamp
+        '''
+        out="#======== UCAC4 server (2014-09-25, V0.01) ======== LA SAGRA mimic CDS, Strasbourg ========\n"
+        out+="#Center: dummy dummy\n"
+        out+='#UCAC4    |    RA  (ICRS) Dec     +/- +/-  mas  EpRA    EpDE  | f.mag  a.mag  +/- |of db| Na  Nu  Cu| pmRA(mas/yr)pmDE  +/-  +/-|MPOS1      UCAC2      Tycho-2    |     2Mkey   Jmag  +/-:cq   Hmag  +/-:cq   Kmag  +/-:cq|  Bmag:1s.   Vmag:1s.   gmag:1s.   rmag:1s.   imag:1s.|gc.HAbhZBLNS|LED 2MX|;     r(")\n'
         for d in data:
-	    mas=sqrt(d['RA_ERR']*d['RA_ERR']+d['DEC_ERR']*d['DEC_ERR'])
-	    out +="%10s|%011.7f%+011.7f%4s%4s%5s%8.2f%8.2f|" % (d['UCAC4'],d['RA'],d['DEC'],int(d['RA_ERR']),int(d['DEC_ERR']),int(mas),d['RA_EPOCH'],d['DEC_EPOCH'])
-	    out +="%6.3f %6.3f %4.2f |%2s%3s|" % (d['MAG1'],d['MAG2'],d['MAG_ERR']/100,int(d['OBJECT_TYPE']),int(d['DOUBLE_STAR']))
-	    out +="%3s %3s %3s|" % (int(d['nt']),int(d['nu']),int(d['nc']))
-	    out +="%8.1f %8.1f %4.1f %4.1f|" % (d['pmRA']/10,d['pmDEC']/10,d['pmRAsigma']/10,d['pmDECsigma']/10)
-	    out +="%9s %s             |" % (d['2MXID'],d['UCAC2ID'].strip())
-	    out +="%10s" % (d['2MASSID'])
-	    out +="\n"
+            mas=sqrt(d['RA_ERR']*d['RA_ERR']+d['DEC_ERR']*d['DEC_ERR'])
+            out +="%10s|%011.7f%+011.7f%4s%4s%5s%8.2f%8.2f|" % (d['UCAC4'],d['RA'],d['DEC'],int(d['RA_ERR']),int(d['DEC_ERR']),int(mas),d['RA_EPOCH'],d['DEC_EPOCH'])
+            out +="%6.3f %6.3f %4.2f |%2s%3s|" % (d['MAG1'],d['MAG2'],d['MAG_ERR']/100,int(d['OBJECT_TYPE']),int(d['DOUBLE_STAR']))
+            out +="%3s %3s %3s|" % (int(d['nt']),int(d['nu']),int(d['nc']))
+            out +="%8.1f %8.1f %4.1f %4.1f|" % (d['pmRA']/10,d['pmDEC']/10,d['pmRAsigma']/10,d['pmDECsigma']/10)
+            out +="%9s %s             |" % (d['2MXID'],d['UCAC2ID'].strip())
+            out +="%10s" % (d['2MASSID'])
+            out +="\n"
 
-	return out
+        return out
 
-    def	pickleOutput(self,data):
-	return pickle.dumps(data)
+    def pickleOutput(self,data):
+        return pickle.dumps(data)
 
     def sendOutput(self,data,formatType):
         self.send_response(200)
 
         if formatType.startswith('html'):
             output=self.htmlOutput(data)
-	    size=len(output)
+            size=len(output)
             contentType="text/html"
 
         if formatType.startswith('csv'):
             output=self.csvOutput(data)
             contentType="text/csv"
-	    size=len(output)
+            size=len(output)
             self.send_header("Content-Length",str(size))
             self.send_header("Content-Disposition", 'attachment;filename=output.csv')
 
         if formatType.startswith('fits'):
             output=self.fitsOutput(data)
-	    size=len(output)	
+            size=len(output)
             self.send_header("Content-Length",str(size))
             self.send_header("Content-Disposition", 'attachment;filename=output.fits')
             contentType="application/fits"
 
         if formatType.startswith('scamp'):
             output=self.scampOutput(data)
-	    size=len(output)	
+            size=len(output)
             self.send_header("Content-Length",str(size))
             contentType="text/text"
 
 
         if formatType.startswith('mpc'):
             output=self.mpcOutput(data)
-	    size=len(output)	
+            size=len(output)
             self.send_header("Content-Length",str(size))
             contentType="text/text"
 
 
         if formatType.startswith('excel'):
             output=self.excelOutput(data)
-	    size=len(output)	
+            size=len(output)
             self.send_header("Content-Length",str(size))
             contentType="application/xlsx"
             self.send_header("Content-Disposition", 'attachment;filename=output.xlsx')
 
         if formatType.startswith('pickle'):
             output=self.pickleOutput(data)
-	    size=len(output)	
+            size=len(output)
             self.send_header("Content-Length",str(size))
             contentType="application/python-pickle"
 
         self.send_header("Content-type",contentType)
         self.end_headers()
-	print("START SENDING",size)
-	self.wfile.write(output)
+        print("START SENDING",size)
+        self.wfile.write(output)
         #[self.wfile.write(l) for l in output]
-	print("END SENDING")
+        print("END SENDING")
 
     def standardParams(self,params):
         formatType=params.get('format',['html'])[0]
-	'''
-	if cfg['fix_date']=='True':
-		cfgMPCORB=dict(config.items("MPCORB"))
-		date0JD=float(cfgMPCORB['date0'])
-		unixT0=(date0JD-2440587.5) * 86400
-		date=datetime.datetime.fromtimestamp(unixT0).strftime("%Y-%m-%d %H:%M:%S")
-		print "Force date:",date
-	else:
-        	now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        	date=params.get('date',[now])[0]
-	'''
-	now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-       	date=params.get('date',[now])[0]
+        '''
+        if cfg['fix_date']=='True':
+                cfgMPCORB=dict(config.items("MPCORB"))
+                date0JD=float(cfgMPCORB['date0'])
+                unixT0=(date0JD-2440587.5) * 86400
+                date=datetime.datetime.fromtimestamp(unixT0).strftime("%Y-%m-%d %H:%M:%S")
+                print "Force date:",date
+        else:
+                now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                date=params.get('date',[now])[0]
+        '''
+        now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        date=params.get('date',[now])[0]
         ra=float(params.get('ra',[0])[0])
         dec=float(params.get('dec',[0])[0])
         r=float(params.get('r',[1])[0])
-	astType=params.get('type',[''])
-	self.par=(formatType,date,ra,dec,r,astType)
+        astType=params.get('type',[''])
+        self.par=(formatType,date,ra,dec,r,astType)
         return (formatType,date,ra,dec,r,astType)
 
 
@@ -446,12 +446,12 @@ if __name__ == '__main__':
     #server_class = BaseHTTPServer.HTTPServer
     server_class = ThreadedHTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-    httpd.daemon=True	
+    httpd.daemon=True
     print(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
     if cfg['use_fix_mpcorb']=='True':
-	print("WARNING: use_fix_mpcorb='True'.")
-	print("All calculation will be done for a FIX_MPCORB.DAT")
-	print("Calculation for distant dates may be inacurate.")
+        print("WARNING: use_fix_mpcorb='True'.")
+        print("All calculation will be done for a FIX_MPCORB.DAT")
+        print("Calculation for distant dates may be inacurate.")
 
 
     try:

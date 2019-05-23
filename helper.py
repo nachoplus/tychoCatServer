@@ -13,27 +13,27 @@ MJDoffset=2400000.5
 
 
 def distance(ra0,dec0,ra1,dec1):
-	#arg in degrees
-	#return degrees
-	deltaDE=dec1-dec0
-	deltaRA=ra1-ra0
-	cosfactor=np.cos(dec0*np.pi/180)
-	return np.sqrt(deltaDE*deltaDE+deltaRA*deltaRA*cosfactor*cosfactor)
+        #arg in degrees
+        #return degrees
+        deltaDE=dec1-dec0
+        deltaRA=ra1-ra0
+        cosfactor=np.cos(dec0*np.pi/180)
+        return np.sqrt(deltaDE*deltaDE+deltaRA*deltaRA*cosfactor*cosfactor)
 
 
 def speed(t,ra0,dec0,ra1,dec1):
-	#arg in degrees, days
-	#return arcsec per min
-	return (distance(ra0,dec0,ra1,dec1)/t)*3600/(24*60)
+        #arg in degrees, days
+        #return arcsec per min
+        return (distance(ra0,dec0,ra1,dec1)/t)*3600/(24*60)
 
 def PA(ra0,dec0,ra1,dec1):
-	deltaDE=dec1-dec0
-	deltaRA=ra1-ra0
-	cosfactor=np.cos(dec0*np.pi/180)
-	pa=np.arctan2(deltaRA*cosfactor,deltaDE)
-	if pa<0:
-		pa=2*np.pi+pa
-	return pa*180/np.pi
+        deltaDE=dec1-dec0
+        deltaRA=ra1-ra0
+        cosfactor=np.cos(dec0*np.pi/180)
+        pa=np.arctan2(deltaRA*cosfactor,deltaDE)
+        if pa<0:
+                pa=2*np.pi+pa
+        return pa*180/np.pi
 
 
 
@@ -85,33 +85,33 @@ def convert_design(packed):
     return desig
 
 def date_from_designation(packed):
-	isdigit = str.isdigit
-	if isdigit(packed[0]) == False and  isdigit(packed[1:3]) == True and (packed[0] in ['I','J','K']) and len(packed.strip())==7: 
-		try:
-	        	packdt = str(packed).strip()
-	    	except ValueError:
-	        	print("ValueError: Input is not convertable to string.")
-		
-		year=give_number(packdt[0]) + packdt[1:3]
-		halfmonth=float(give_number(packdt[3]))-9
-		if halfmonth>9:
-			halfmonth-=1
-		month=str(np.ceil(halfmonth/2))
-		#print "HALFMONTH:",packdt[3],halfmonth,month,halfmonth % 2
-		if (halfmonth % 2)==1:
-			day='01'
-		else:
-			day='15'
-		d=year+'/'+month+'/'+day
-		dd=ephem.date(d+" 00:00:00")
+        isdigit = str.isdigit
+        if isdigit(packed[0]) == False and  isdigit(packed[1:3]) == True and (packed[0] in ['I','J','K']) and len(packed.strip())==7: 
+                try:
+                        packdt = str(packed).strip()
+                except ValueError:
+                        print("ValueError: Input is not convertable to string.")
+                
+                year=give_number(packdt[0]) + packdt[1:3]
+                halfmonth=float(give_number(packdt[3]))-9
+                if halfmonth>9:
+                        halfmonth-=1
+                month=str(np.ceil(halfmonth/2))
+                #print "HALFMONTH:",packdt[3],halfmonth,month,halfmonth % 2
+                if (halfmonth % 2)==1:
+                        day='01'
+                else:
+                        day='15'
+                d=year+'/'+month+'/'+day
+                dd=ephem.date(d+" 00:00:00")
 
-		#print packdt[4:]
-		#print packed,d,dd
-	else:
-		dd=ephem.date(0)
-	return dd
+                #print packdt[4:]
+                #print packed,d,dd
+        else:
+                dd=ephem.date(0)
+        return dd
 
-	
+        
 
 
 def convert_date(packdt):
@@ -157,64 +157,64 @@ def convert_date(packdt):
 
 
 def asteroid_type(a,e,i):
-	#http://en.wikipedia.org/wiki/Near-Earth_object
-	Qt=1.017
-	qt=0.983
-	at=1
-	neo=1.3
-	Q=a*(1+e)
-	q=a*(1-e)
-	t=[]
+        #http://en.wikipedia.org/wiki/Near-Earth_object
+        Qt=1.017
+        qt=0.983
+        at=1
+        neo=1.3
+        Q=a*(1+e)
+        q=a*(1-e)
+        t=[]
 
-	if q<=neo:
-		t.append("NEO")
+        if q<=neo:
+                t.append("NEO")
 
-	if a<=at: 
-		if Q>qt:
-			t.append("Athen")
-		else:
-			t.append("Atira")
-	else:
-		if q<Qt:
-			t.append("Apollo")
-		#Amors (1.0167 < q < 1.3 AU) 
-		elif Qt < q < neo:
-			t.append("Amor")
+        if a<=at: 
+                if Q>qt:
+                        t.append("Athen")
+                else:
+                        t.append("Atira")
+        else:
+                if q<Qt:
+                        t.append("Apollo")
+                #Amors (1.0167 < q < 1.3 AU) 
+                elif Qt < q < neo:
+                        t.append("Amor")
 
-	#Mars crossers (1.3 < q < 1.6660 AU)
-	if neo < q < 1.6660:
-		t.append("MarsCrosser")
+        #Mars crossers (1.3 < q < 1.6660 AU)
+        if neo < q < 1.6660:
+                t.append("MarsCrosser")
 
-	#HUNGARIAN Semi-major axis between 1.78 and 2.00 AU. Orbital period of approximately 2.5 years.
-	#Low eccentricity of below 0.18. An inclination of 16° to 34°
-	if 1.78<=a<=2.0 and e<=0.18 and 16<=i<=34:
-		t.append("Hungaria")
+        #HUNGARIAN Semi-major axis between 1.78 and 2.00 AU. Orbital period of approximately 2.5 years.
+        #Low eccentricity of below 0.18. An inclination of 16° to 34°
+        if 1.78<=a<=2.0 and e<=0.18 and 16<=i<=34:
+                t.append("Hungaria")
 
-	#MB:Zona I (2,06-2,5 UA), Zona II (2,5-2,82 UA) y Zona III (2,82-3,28 UA).
-	if 2.06<=a<=2.5:
-		#main belter I
-		t.append("MB I")
+        #MB:Zona I (2,06-2,5 UA), Zona II (2,5-2,82 UA) y Zona III (2,82-3,28 UA).
+        if 2.06<=a<=2.5:
+                #main belter I
+                t.append("MB I")
 
-	if 2.5<=a<=2.82:
-		#main belter II
-		t.append("MB II")
+        if 2.5<=a<=2.82:
+                #main belter II
+                t.append("MB II")
 
-	if 2.82<=a<=3.28:
-		#main belter II
-		t.append("MB III")
+        if 2.82<=a<=3.28:
+                #main belter II
+                t.append("MB III")
 
-	# HILDA: semi-major axis between 3.7 AU and 4.2 AU, an eccentricity less than 0.3, and an inclination less than 20°
-	if 3.7<=a<=4.2 and e<=0.3 and i<=20:
-		t.append("Hilda")
+        # HILDA: semi-major axis between 3.7 AU and 4.2 AU, an eccentricity less than 0.3, and an inclination less than 20°
+        if 3.7<=a<=4.2 and e<=0.3 and i<=20:
+                t.append("Hilda")
 
-	#TNOs 30,103
-	if a>=30.103:
-		t.append("TNO")
+        #TNOs 30,103
+        if a>=30.103:
+                t.append("TNO")
 
-	#print a,Q,q,t
-	t_=';'.join(t)
-	return t_
-	
+        #print a,Q,q,t
+        t_=';'.join(t)
+        return t_
+        
 
 
 '''
@@ -227,17 +227,17 @@ def PA(ra0,dec0,ra1,dec1):
     #arg in degrees
     deltaDE=dec1-dec0
     deltaRA=ra1-ra0 
-    if 	deltaRA!=0: 		
-	    pendiente=deltaDE/deltaRA
-	    np.cosfactor=np.cos(((dec0+dec1)/2)*np.pi/180)
-	    if (np.cosfactor==0):
-        	np.cosfactor=0.000000000001
-	    PA=np.arctan(pendiente/np.cosfactor)*180/np.pi
+    if deltaRA!=0: 
+            pendiente=deltaDE/deltaRA
+            np.cosfactor=np.cos(((dec0+dec1)/2)*np.pi/180)
+            if (np.cosfactor==0):
+                np.cosfactor=0.000000000001
+            PA=np.arctan(pendiente/np.cosfactor)*180/np.pi
     else:
-	    if deltaDE>0:
-		PA=0
-	    else:
-		PA=180
+            if deltaDE>0:
+                PA=0
+            else:
+                PA=180
 
     if PA>=0:
         PA_ASTROMETRICA=PA

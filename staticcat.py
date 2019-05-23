@@ -17,15 +17,15 @@ cfg=dict(config.items("STATIC_CATS"))
 class staticCat():
 
     def __init__(self,catalog):
-	self.catalogFile=catalog
-	pass
+        self.catalogFile=catalog
+        pass
 
     def get(self,ra,dec,r):
-	w=r*2
-	h=r*2
+        w=r*2
+        h=r*2
         catalog=self.catalogFile
-	f=pyfits.open(cfg[catalog])
-	data=np.array(f[1].data)
+        f=pyfits.open(cfg[catalog])
+        data=np.array(f[1].data)
 
         decmin=dec-r
         if decmin<=-90:
@@ -35,9 +35,9 @@ class staticCat():
             decmax=90
         ramin=(360+ra-r) % 360
         ramax=(360+ra+r) % 360
-	if r*2>=360:
-		ramin=0
-		ramax=360
+        if r*2>=360:
+                ramin=0
+                ramax=360
         if ramin<ramax:
             flt=(data['RA']<=ramax) & (data['RA']>=ramin) & (data['DEC']<=decmax) & (data['DEC']>=decmin)
         else:
@@ -46,7 +46,7 @@ class staticCat():
 
         return data[flt]
 
-	
+        
 
 
 if __name__ == '__main__':

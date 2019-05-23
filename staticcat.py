@@ -50,5 +50,5 @@ class staticCat():
 
 
 if __name__ == '__main__':
-    s=hyperleda()
+    s=staticCat('hyperleda')
     print(s.get(50,-16.3,2.0))

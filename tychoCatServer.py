@@ -9,10 +9,13 @@
 
 """
 import time
-import BaseHTTPServer
+import http.server as BaseHTTPServer
 import os
-from urlparse import parse_qs,urlparse
-from SocketServer import ThreadingMixIn
+#from urlparse import parse_qs,urlparse
+from urllib.parse import urlparse
+from urllib.parse import parse_qs
+
+from socketserver import ThreadingMixIn
 import threading
 import datetime
 from math import sqrt
@@ -25,8 +28,8 @@ import asteroids
 import staticcat
 
 import xlsxwriter
-from StringIO import StringIO
-import cPickle as pickle
+from io import StringIO
+import pickle
 
 
 
@@ -53,7 +56,7 @@ def last_flagged(seq):
 
 class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    mpcEngine=asteroids.MPCephem()
+    mpcEngine=asteroids.MPCEphem()
 
     def do_HEAD(self):
         self.send_response(200)
@@ -91,7 +94,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         with open('helptext.txt','r') as f:
             data=f.read()
-        self.wfile.write(data)
+        self.wfile.write(data.encode('ascii'))
 
     def favicon(self,params):
         self.send_response(200)
@@ -99,7 +102,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         with open('favicon.ico','r') as f:
             data=f.read()
-        self.wfile.write(data)
+        self.wfile.write(data.encode('ascii'))
 
     def static(self,params,catalog):
         formatType,date,ra,dec,r,Type =self.standardParams(params)
@@ -409,7 +412,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-type",contentType)
         self.end_headers()
         print("START SENDING",size)
-        self.wfile.write(output)
+        self.wfile.write(output.encode('ascii'))
         #[self.wfile.write(l) for l in output]
         print("END SENDING")
 

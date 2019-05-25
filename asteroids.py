@@ -38,7 +38,8 @@ class MPCEphem:
                 self.guestDate=ephem.date(date)
                 print("Load guestDB",self.guestDB)
                 print("self.guestDate",self.guestDate)
-                print("ASTEROID INIT. Number:",len(self.guestPos))
+                print("ASTEROID INIT: Above the horizont:",len(self.guestPos))
+                print(self.guestPos)
         else:
                 self.guestPos=np.asarray([])
                 print("FAIL TO LOAD ASTEROID GUESTDB.")
@@ -52,7 +53,7 @@ class MPCEphem:
 
         asteroid=dict()
         print("Reading:",filename)
-        MPC = open(filename, "r")
+        MPC = open(filename, "r", encoding="latin-1")
         content=MPC.readlines()
         #skip headers comments
         try:
@@ -80,7 +81,7 @@ class MPCEphem:
                     print("Error loading line")
                     pass
 
-        print("\nMPC catalogue has been read. The total of asteroids ",len(asteroid), " of ",n)
+        print("\nMPC catalogue has been read. Total readed asteroids ",len(asteroid), " of ",n)
 
         self.asteroids = asteroid
         self.loadedMPCORB=filename
@@ -181,7 +182,7 @@ class MPCEphem:
         '''
         Compute positions and other values for asteroids in mylist. Do twice (if delta <>0) to compute PA and SPEED
         '''
-        dtypes=np.dtype([("KEY","|S7"),("PRECOVERY",np.int16),("TYPE","|S30"),("DATETIME","|S25"),("MJD",np.float64),("EPOCH","|S10"),\
+        dtypes=np.dtype([("KEY","|U7"),("PRECOVERY",np.int16),("TYPE","|U30"),("DATETIME","|U25"),("MJD",np.float64),("EPOCH","|U10"),\
         ("RA",np.float64),("DEC",np.float64),("MAG",np.float64),("SPEED",np.float64),("PA",np.float64),("PHASE",np.float64),("EARTH_DIS",np.float64),\
                 ("SUN_DIS",np.float64),("ELONG",np.float64),("SUN_SEPARATION",np.float64)])
         astPos=[]
@@ -276,8 +277,8 @@ class MPCEphem:
                 self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
                 self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
 
-        print(self.mpcorbfile)
-        print(self.guestDB)
+        print("MPC RB FILE:",self.mpcorbfile)
+        print("GUEST FILE:",self.guestDB)
         return jd
 
     def getMPCORB(self,date=''):
@@ -328,7 +329,6 @@ class MPCEphem:
 
         mask=[]
         for dat in data['TYPE']:
-                #print "TYPE:",dat
                 s1=set(dat.split(';'))
                 #print s1
                 if len(astType)==1 and (astType[0]=='' or astType[0]=='All'):
@@ -478,11 +478,11 @@ class MPCEphem:
             print("Not to much asteroids(%d). Going single thread" % len(asteroids))
             return self.compute(asteroids,delta)
 
-        chunk_size=len(asteroids)/ncores
+        chunk_size=int(len(asteroids)/ncores)
 
-        asteroids_chunks=[dict(asteroids.items()[x:x+chunk_size]) for x in range(0, chunk_size*ncores,chunk_size)]
+        asteroids_chunks=[dict(list(asteroids.items())[x:x+chunk_size]) for x in range(0, chunk_size*ncores,chunk_size)]
         if len(asteroids) % ncores !=0:
-                asteroids_chunks.append(dict(asteroids.items()[chunk_size*ncores:]))
+                asteroids_chunks.append(dict(list(asteroids.items())[chunk_size*ncores:]))
 
         print("CORES/AST/CHUNK/cho SIZE:",ncores,len(asteroids),chunk_size,len(asteroids_chunks))
 

@@ -50,15 +50,16 @@ class satEphem():
 
     def compute(self,satellites,delta=0):
 
-        dtypes=np.dtype([('NAME', "|S24"), ('CAT_NUMBER',"|S6"), ('KEY', "|S6"),('DATETIME',"|S25"), ('MJD', np.float64), ('MAG', np.float64), \
+        dtypes=np.dtype([('NAME', "|U24"), ('CAT_NUMBER',"|U6"), ('KEY', "|U6"),('DATETIME',"|U25"), ('MJD', np.float64), ('MAG', np.float64), \
                         ('RA', np.float64), ('DEC', np.float64),("SPEED",np.float64),("PA",np.float64), ('AZ', np.float64), ('ALT', np.float64), ('RANGE', np.float64), \
-                        ('ELEVATION', np.float64), ('RANGE_SPEED', np.float64), ('ECLIPSED', np.bool),('EPOCH',"|S12")])
+                        ('ELEVATION', np.float64), ('RANGE_SPEED', np.float64), ('ECLIPSED', np.bool),('EPOCH',"|U12")])
 
 
         astPos=[]
         for i,tle in enumerate(satellites):
-            #print tle
+            print ("TLE:",tle)
             lines=tle.split('\r')[:-1]
+            print (lines)
             try:
                     sat=ephem.readtle(lines[0],lines[1],lines[2])
                     sat.compute(self.here)
@@ -125,11 +126,14 @@ class satEphem():
         dir_dest=cfg["tledir"]
         d=ephem.date(date)
         dirs = os.listdir( dir_dest)
-        #print dirs
+        print(dirs)
+        for hh in (list(map(lambda x:'20'+x[:8].replace('-','/')+" 00:00:00",dirs))):
+            print(hh)
+            print(ephem.date(hh))
         days=list(map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs))
-        #print days
+        print(days)
         distance=list(map(lambda x:np.abs(d-x),days))
-        #print distance
+        print(distance)
         minD=np.min(distance)
         minIndex=distance.index(minD)
         BetterDay=dirs[minIndex]

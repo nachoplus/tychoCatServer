@@ -260,7 +260,7 @@ class propagateMPCorb:
         newGuestPos=dummy[['KEY','RA','DEC','MAG','SPEED','TYPE']]
         flt=(newGuestPos['MAG']<=float(cfg['maxmag']))
         #get the new records
-        newGuestPos=newGuestPos[flt]
+        newGuestPos=newGuestPos[flt]http.server
         if len(newGuestPos)==0:
                 print("Not new coords")
                 return

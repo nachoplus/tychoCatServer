@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 """
-.. module:: ucac4server
+.. module:: staticcat
    :platform: Unix, Windows
    :synopsis:
 
@@ -12,11 +12,17 @@ import astropy.io.fits as pyfits
 import numpy as np
 import os
 from config import *
+import logging
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
 cfg=dict(config.items("STATIC_CATS"))
 
 class staticCat():
 
     def __init__(self,catalog):
+        logger.info("INIT module")
+        logger.info("Catalog:%s",catalog)
         self.catalogFile=catalog
         pass
 
@@ -26,7 +32,7 @@ class staticCat():
         catalog=self.catalogFile
         f=pyfits.open(cfg[catalog])
         data=np.array(f[1].data)
-
+        logger.debug("dtype:%s",data.dtype)
         decmin=dec-r
         if decmin<=-90:
             decmin=-90

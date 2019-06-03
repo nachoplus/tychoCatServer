@@ -12,6 +12,12 @@ import ucac4
 import numpy as np
 import os
 from config import *
+
+import logging
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
 cfg=dict(config.items("UCAC4"))
 
 class ucac4server():
@@ -22,10 +28,10 @@ class ucac4server():
                 2MASSID mag_j mag_h mag_k e2mphos0 e2mphos1 e2mphos2 icq_flag0 icq_flag1 icq_flag2 Bmag Vmag gmag rmag \
                 imag sig_B sig_V sig_g sig_r sig_i catflags Ya Leda 2MXFLAGS 2MXID UCAC2ID"
             headers=" ".join(usual_header.split()).split()
-            print(len(headers))
+            #logger.info("Headers:%s",headers)
+            logger.info("INIT module")
             headers_units=['|S25','f8','f8','f8','f8','f8','u2','u2','f8','f8','f8','f8','u2','u2','u2','f8','f8','f8','f8','u4','f8',\
                      'f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','u4','u1','u1','u1','u4','|S25']
-            print(len(headers_units))
             strType=[]
             for i,header in enumerate(headers):
                 strType.append((header,headers_units[i]))
@@ -40,7 +46,7 @@ class ucac4server():
         filename=cfg['base_dir']+"/tmp.stars"
         starsfile=ucac4.fopen(filename, 'wr')
         f=0
-        print(ucac4.extract_ucac4_stars(starsfile,ra,dec,w,h,path,f))
+        logger.info("retriving %s stars",ucac4.extract_ucac4_stars(starsfile,ra,dec,w,h,path,f))
         ucac4.fclose(starsfile)
         with open(filename, 'r') as stars:
                 lines=[line.strip() for line in stars]

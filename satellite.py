@@ -11,18 +11,27 @@ import multiprocessing
 
 from config import *
 from helper import *
+
+import logging
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
 cfg=dict(config.items("TLE"))
 cfgOBS=dict(config.items("OBSERVATORY"))
 
 pi=np.pi
 
 class satEphem():
-    result_queue = multiprocessing.Queue()
+
+    def __init__(self):
+        logger.info("INIT module")
+        self.result_queue = multiprocessing.Queue()
 
     def get(self,date):
+        logger.info("Loading TLEfile for date:%s",date)
         self.loadTLEfile(date)
         self.setObserver(lon=cfgOBS["lon"],lat=cfgOBS["lat"],elev=cfgOBS["elev"])
-        print("DATE:",date)
         self.setDate(date)
         self.pos=self.threadCompute(self.TLEs,delta=ephem.second)
         return self.pos
@@ -30,7 +39,7 @@ class satEphem():
 
 
     def setObserver(self,lon,lat,elev,hor="00:00:00"):
-
+        logger.info("LON:%s LAT:%s ELEV:%s",lon,lat,elev)
         here = ephem.Observer()
         here.lat, here.lon, here.horizon  = str(lat), str(lon), str(hor)
         here.elev = float(elev)
@@ -42,7 +51,7 @@ class satEphem():
 
     def setDate(self,date):
         self.here.date=ephem.date(date)
-        print(ephem.localtime(self.here.date))
+        logger.info("OBSERVER DATE SET TO:%s",ephem.localtime(self.here.date))
 
 
 
@@ -57,19 +66,20 @@ class satEphem():
 
         astPos=[]
         for i,tle in enumerate(satellites):
-            print ("TLE:",tle)
-            lines=tle.split('\r')[:-1]
-            print (lines)
+            #print ("TLE:",tle)
+            lines=tle
             try:
                     sat=ephem.readtle(lines[0],lines[1],lines[2])
                     sat.compute(self.here)
+                    if sat.range_velocity==0:
+                       logger.error("FAIL to compute Sat:%s DATE:%s",sat.name,self.here.date)
+                       continue
             except:
-                    print("ERROR computing or reading TLE:\n",lines)
+                    logger.error("computing %s",lines[0])
+                    logger.exception("TLE elements:%s,%s",lines[1],lines[2])
                     continue
 
-            if sat.range_velocity==0:
-                print("FAIL to compute Sat:",sat.name,self.here.date)
-                continue
+
 
             ra  =sat.ra*180/pi
             dec =sat.dec*180/pi
@@ -84,11 +94,16 @@ class satEphem():
             """
             int_number=elements1[2]
             dummy=elements1[3]
-
-            if int(dummy[:2])>50:
-                year='19'+dummy[:2]
+            try:
+               yy=dummy[:2] 
+               yyy=int(yy)
+            except:
+               #print("bad year. next sat",yy)
+               continue
+            if yyy>50:
+                year='19'+yy
             else:
-                year='20'+dummy[:2]
+                year='20'+yy
             epoch_day=dummy[-12:]
             epoch=year+'/'+epoch_day
 
@@ -107,15 +122,22 @@ class satEphem():
             else:
                 pa=np.nan
                 sp=np.nan
-
-            astPos.append((sat.name,sat.catalog_number,int_number,ldate,ddate,sat.mag,ra,dec,sp,pa, \
-                            sat.az*180/pi,sat.alt*180/pi,sat.range,sat.elevation,sat.range_velocity,sat.eclipsed,epoch))
+            onePos=(sat.name,sat.catalog_number,int_number,ldate,ddate,sat.mag,ra,dec,sp,pa, \
+                            sat.az*180/pi,sat.alt*180/pi,sat.range,sat.elevation,sat.range_velocity,sat.eclipsed,epoch)
+            #print(i,len(satellites),onePos)
+            astPos.append(onePos)
 
 
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
+        #logger.debug("Result:%s",Pos)
         if len(Pos)>0:
+           logger.debug("Adding thread:%s result to the result queue.",multiprocessing.current_process().name)
            self.result_queue.put(Pos)
+           logger.debug("Added %s",multiprocessing.current_process().name)
+        else:
+           logger.debug("%s has no results. Skiping",multiprocessing.current_process().name)
+        logger.info("Threath:%s end. Returning to main",multiprocessing.current_process().name)
         return Pos
 
     def loadTLEfile(self,date):
@@ -126,26 +148,21 @@ class satEphem():
         dir_dest=cfg["tledir"]
         d=ephem.date(date)
         dirs = os.listdir( dir_dest)
-        print(dirs)
-        for hh in (list(map(lambda x:'20'+x[:8].replace('-','/')+" 00:00:00",dirs))):
-            print(hh)
-            print(ephem.date(hh))
+        #logger.debug("TLE files in library: %s",dirs)
         days=list(map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs))
-        print(days)
         distance=list(map(lambda x:np.abs(d-x),days))
-        print(distance)
         minD=np.min(distance)
         minIndex=distance.index(minD)
         BetterDay=dirs[minIndex]
         #print minD,minIndex,dirs[minIndex]
-        print("TLE for:",d,"Best available",BetterDay)
+        logger.info("TLE for:%s -> Best available: %s",d,BetterDay)
         self.tlefile=dir_dest+'/'+BetterDay
         nrec=self.readTLEfile(self.tlefile)
-        print("TLE from:",self.tlefile,nrec," REG LOADED")
+        logger.info("TLE from:%s #REG LOADED: %s",self.tlefile,nrec)
 
     def downloadTLEfile(self):
         '''
-        Download TLE file of the day and rename
+        Download TLE file of the day unzip and rename
         '''
         dir_dest=cfg["tledir"]
         if not os.path.exists(dir_dest):
@@ -153,10 +170,10 @@ class satEphem():
         tlefile=dir_dest+'/'+getToday()+".TLE"
 
         if not os.path.isfile(tlefile):
-            print("TLE %s not exit. Downloading" % os.path.basename(tlefile))
+            logger.info("TLE %s not exit. Downloading" , os.path.basename(tlefile))
             res=subprocess.getoutput("wget -c "+cfg["tleurl"])
-            print(res)
-            print(os.path.basename(cfg["tleurl"]))
+            logger.info("res:%s",res)
+            logger.info("Downloading file from: %s",os.path.basename(cfg["tleurl"]))
             res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
             print(res)
             res=subprocess.getoutput("mv ALL_TLE.TXT "+tlefile)
@@ -175,7 +192,7 @@ class satEphem():
             print res
             '''
         else:
-            print("TLE %s already downloaded" % os.path.basename(tlefile))
+            logger.info("TLE %s already downloaded", os.path.basename(tlefile))
 
 
 
@@ -189,8 +206,9 @@ class satEphem():
         theList=f.read().split('\n')
         f.close()
         N=3
-        tles = [''.join(theList[n:n+N]) for n in range(0, len(theList), N)]
-        self.TLEs = tles[:-1]
+        #tles = [''.join(theList[n:n+N]) for n in range(0, len(theList), N)]
+        tles = list(group(theList,3))
+        self.TLEs = tles
         return len(self.TLEs)
 
 
@@ -236,7 +254,7 @@ class satEphem():
         ncores=multiprocessing.cpu_count()
 
         if len(satellites)<=ncores*10:
-            print("Not to much satellites(%d). Going single thread" % len(satellites))
+            logger.info("Not to much satellites(%d). Going single thread", len(satellites))
             return self.compute(satellites,delta)
 
         chunk_size=int(len(satellites)/ncores)
@@ -245,10 +263,14 @@ class satEphem():
         if len(satellites) % ncores !=0:
                 satellites_chunks.append(satellites[chunk_size*ncores:])
 
-        print("CORES/AST/CHUNK/cho SIZE:",ncores,len(satellites),chunk_size,len(satellites_chunks))
-
+        
+        total_satellites=len(satellites)
+        n_chunks=len(satellites_chunks)
+        rest=total_satellites-ncores*chunk_size
+        logger.info("CORES:%s #SATELLITES:%s CHUNK_SIZE:%s #CHUNKS:%s",ncores,total_satellites,chunk_size,n_chunks)
+        logger.info("Programed %d  satellites on %d cores. %d chuncks x %d each + 1 chunk x %d ",total_satellites,ncores ,n_chunks-1,chunk_size,rest)
         try:
-            print("Creating Threads ...")
+            logger.info("Creating Threads ...")
             threadsPool=[]
             #define threads
 
@@ -260,31 +282,35 @@ class satEphem():
 
             # Start all threads
             [x.start() for x in threadsPool]
-
-            result=[]
-            for j in threadsPool:
-                result.append(self.result_queue.get())
-
+            for t in threadsPool:
+                    print(t.name)
+            logger.info("Started %s threads",len(threadsPool))
             # Wait for all of them to finish
             [x.join() for x in threadsPool]
+            logger.info("All threads finished")
+            result=[]
+            for j in threadsPool:
+                print(self.result_queue.get())
+                result.append(self.result_queue.get())
 
             for i,r in enumerate(result):
                 if i==0:
                     final_result=r
                     continue
                 final_result=np.hstack((final_result,r))
-
-            print(len(final_result))
-            print("%d compute Threads.Processing %d x %d satellites" % (ncores,ncores,chunk_size))
+            total_satellites=len(final_result)
+            n_chunks=len(satellites_chunks)
+            rest=total_satellites-ncores*chunk_size
+            logger.info("Processed  %d  satellites on %d cores. %d chuncks x %d each + 1 chunk x %d ",total_satellites,ncores ,n_chunks-1,chunk_size,rest)
             return final_result
         except Exception as e:
-            print("Thread error...")
-            print(e)
+            logger.error("Exception in Thread loop...")
+            logger.exception("")
 
 
 if __name__ == '__main__':
     s=satEphem()
-    data=s.filterSat("2014-09-21 01:00",25,-6.3,2.0)
+    data=s.filterSat("2019-06-01 01:00",25,-6.3,.1)
     print(data)
     #flt=(data['ELEVATION']>=1E8)
     #print data[flt]

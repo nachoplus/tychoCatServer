@@ -16,6 +16,12 @@ import datetime
 
 from config import *
 from helper import *
+
+import logging
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
 cfg=dict(config.items("MPCORB"))
 cfgOBS=dict(config.items("OBSERVATORY"))
 
@@ -30,29 +36,27 @@ class MPCEphem:
     result_queue = multiprocessing.Queue()
 
     def init(self,date):
-        #wait until guestDB is ready
-        #
+        logger.info("INIT module")
         if  self.initGuestPos(date):
                 self.getMPCORB(date)
                 self.guestPos=pickle.load(open( self.guestDB, "rb" ) )
                 self.guestDate=ephem.date(date)
-                print("Load guestDB",self.guestDB)
-                print("self.guestDate",self.guestDate)
-                print("ASTEROID INIT: Above the horizont:",len(self.guestPos))
-                print(self.guestPos)
+                logger.info("Load guestDB: %s",self.guestDB)
+                logger.info("self.guestDate: %s",self.guestDate)
+                logger.info("ASTEROID INIT: Above the horizont: %s",len(self.guestPos))
         else:
                 self.guestPos=np.asarray([])
-                print("FAIL TO LOAD ASTEROID GUESTDB.")
+                logger.critical("FAIL TO LOAD ASTEROID GUESTDB.")
                 exit(1)
 
 
     def loadMPCorb(self,filename):
         if filename==self.loadedMPCORB:
-                print("MPCORB %s already load" % filename)
+                logger.info("MPCORB %s already load", filename)
                 return
 
         asteroid=dict()
-        print("Reading:",filename)
+        logger.info("Reading:%s",filename)
         MPC = open(filename, "r", encoding="latin-1")
         content=MPC.readlines()
         #skip headers comments
@@ -78,17 +82,17 @@ class MPCEphem:
                         if len(ast)>80:
                                 asteroid[designation] = tuple([0e0,0.15]+ast[20:104].split())
                 except:
-                    print("Error loading line")
+                    logger.exception("Error loading line")
                     pass
 
-        print("\nMPC catalogue has been read. Total readed asteroids ",len(asteroid), " of ",n)
+        logger.info("MPC catalogue has been read. Total readed asteroids %s of %s",len(asteroid),n)
 
         self.asteroids = asteroid
         self.loadedMPCORB=filename
 
 
     def setObserver(self,lat,lon,elev,hor="10:00:00"):
-
+        logger.info("LON:%s LAT:%s ELEV:%s",lon,lat,elev)
         here = ephem.Observer()
         here.lat, here.lon, here.horizon  = str(lat), str(lon), str(hor)
         here.elev = float(elev)
@@ -103,7 +107,8 @@ class MPCEphem:
 
     def setDate(self,date):
         self.here.date=ephem.date(date)
-        print(ephem.localtime(self.here.date))
+        logger.info("OBSERVER DATE SET TO:%s",ephem.localtime(self.here.date))
+
         #print("Observer info: \n", self.here)
         self.sun.compute(self.here)
 
@@ -225,7 +230,7 @@ class MPCEphem:
                 astPos.append((key,precovery,type_,ldate,ddate,obs_date,ra,dec,vmag,sp,pa,phang,a.earth_distance,a.sun_distance,a.elong,sun_separation))
                 
             except:
-                print(key," fail to compute\n",value)
+                logger.exception("Fail to compute %s %s",key,value)
 
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
@@ -248,17 +253,17 @@ class MPCEphem:
 
         d=d.strftime("%Y-%m-%d")
         jd=ephem.date(d)+dubliJDoffset
-        print(date,jd)
+        logger.info("DATE=%s -> Julian Date:%s",date,jd)
         if not cfg['use_fix_mpcorb']=='True':
           if jd>=dateto:
-            print("date %s is outside off orbital DB range.\nDATETO %s" % (jd,dateto))
+            logger.error("date %s is outside off orbital DB range.DATETO %s" ,jd,dateto)
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
             return
 
 
           if jd<=datefrom:
-            print("date %s is outside off orbital DB range.\nDATEFROM %s" % (jd,datefrom))
+            logger.error("date %s is outside off orbital DB range. DATEFROM %s" ,jd,datefrom)
             self.mpcorbfile=dir_dest+'/kk.p'
             self.guestDB=dir_guestDB+'/kk.p'
             return
@@ -266,7 +271,7 @@ class MPCEphem:
         jd=int(jd)
         dateDistance=round((jd-datestart)/eachdays)
         mpcorbprefix="%0d" % (datestart+dateDistance*eachdays)
-        print(datestart,dateDistance,mpcorbprefix)
+        logger.info("Datestar=%s DateDistnace=%s MPCORBprefix=%s",datestart,dateDistance,mpcorbprefix)
 
         if cfg['use_fix_mpcorb']=='True':
                 self.mpcorbfile=dir_dest+'/FIX_MPCORB.DAT'
@@ -277,18 +282,18 @@ class MPCEphem:
                 self.mpcorbfile=dir_dest+'/'+mpcorbprefix+sufix
                 self.guestDB=dir_guestDB+'/guest_'+str(jd)+".p"
 
-        print("MPC RB FILE:",self.mpcorbfile)
-        print("GUEST FILE:",self.guestDB)
+        logger.info("Setname. MPCORB FILE:%s",self.mpcorbfile)
+        logger.info("Setname. GUEST FILE:%s",self.guestDB)
         return jd
 
     def getMPCORB(self,date=''):
         self.setNames(date)
-        print(self.mpcorbfile)
+        logger.info("Looking for MPCORB file:%s",self.mpcorbfile)
         if not os.path.isfile(self.mpcorbfile):
-            print("MPCORB file not exit:",self.mpcorbfile)
+            logger.error("MPCORB file not found.")
             return
         else:
-            print("MPCORB file found:",self.mpcorbfile)
+            logger.info("MPCORB file found.")
 
         self.loadMPCorb(self.mpcorbfile)
 
@@ -304,7 +309,7 @@ class MPCEphem:
         #include 1º for parallax errors (max at moon distant)
         #and speed_*24*60 arcsec to take into acount asteroids displacement
         margin=1+speed_*24.*60./3600.
-        print("Margin:",margin)
+        logger.info("Windows filter. Margin:%s",margin)
         r=r+margin
         
         #data=self.guestPos.copy()
@@ -325,7 +330,7 @@ class MPCEphem:
                 ramax=360
 
 
-        print(ramin,ramax,decmin,decmax,ra,dec,r)
+        logger.info("Windows filter. RAmin=%s,RAmax=%s,DECmin=%s,DECmax=%s,RA=%s,DEC=%s,r=%s",ramin,ramax,decmin,decmax,ra,dec,r)
 
         mask=[]
         for dat in data['TYPE']:
@@ -341,7 +346,7 @@ class MPCEphem:
                 elif len(s1.intersection(s2))!=0:
                         mask.append(True)
                 else:
-                        mask.append(False)                
+                        mask.append(False)                ,self.mpcorbfile
         mask=np.array(mask)
         data=data[mask]
 
@@ -359,7 +364,7 @@ class MPCEphem:
                 try:
                         filter_asteroid[key]=self.asteroids[key]
                 except:
-                        print("KEY",key," DOES NOT FOUND IN mpcorb.dat. It should not ocurre")
+                        logger.exception("KEY %s DOES NOT FOUND IN mpcorb.dat. It should not ocurre",key)
 
 
 
@@ -370,7 +375,7 @@ class MPCEphem:
 
 
     def filterMPC(self,date,ra,dec,r,astType=[]):
-        print("date,ra,dec,r",date,ra,dec,r)
+        logger.info("Filtering by: Date:%s,RA=%s DEC=%s,r=%s",date,ra,dec,r)
         #Check if is need to switch MPCORB.DAT & guestDB
         if ephem.date(date)!=self.guestDate:
             self.init(date)
@@ -444,7 +449,7 @@ class MPCEphem:
         self.getMPCORB(date)
 
 
-        print("INIT DB FOR DATE:",date)
+        logger.info("INIT DB FOR DATE:%s",date)
         #lock while computing...
         with open(lockfile,'w') as f:
                 f.write('lock')
@@ -475,7 +480,7 @@ class MPCEphem:
         '''
         ncores=multiprocessing.cpu_count()
         if len(asteroids)<=ncores*10:
-            print("Not to much asteroids(%d). Going single thread" % len(asteroids))
+            logger.info("Not to much asteroids(%d). Going single thread", len(asteroids))
             return self.compute(asteroids,delta)
 
         chunk_size=int(len(asteroids)/ncores)
@@ -483,8 +488,7 @@ class MPCEphem:
         asteroids_chunks=[dict(list(asteroids.items())[x:x+chunk_size]) for x in range(0, chunk_size*ncores,chunk_size)]
         if len(asteroids) % ncores !=0:
                 asteroids_chunks.append(dict(list(asteroids.items())[chunk_size*ncores:]))
-
-        print("CORES/AST/CHUNK/cho SIZE:",ncores,len(asteroids),chunk_size,len(asteroids_chunks))
+        logger.info("CORES:%s #ASTEROIDS:%s CHUNK_SIZE:%s #CHUNKS:%s",ncores,len(asteroids),chunk_size,len(asteroids_chunks))
 
         try:
             #print "Creating Threads ..."
@@ -512,13 +516,14 @@ class MPCEphem:
                     final_result=r
                     continue
                 final_result=np.hstack((final_result,r))
-
-            print(len(final_result))
-            print("Processed %d x %d asteroids. " % (ncores,chunk_size))
+            total_asteroids=len(final_result)
+            n_chunks=len(asteroids_chunks)
+            rest=total_asteroids-ncores*chunk_size
+            logger.info("Processed  %d  asteroids on %d cores. %d chuncks x %d each + 1 chunk x %d ",total_asteroids,ncores ,n_chunks-1,chunk_size,rest)
             return final_result
         except Exception as e:
-            print("Thread error...")
-            print(e)
+            logger.exception("Main loop exception:")
+
 
 
 

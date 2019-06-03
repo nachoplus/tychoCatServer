@@ -35,6 +35,12 @@ import pickle
 
 from config import *
 from helper import *
+
+import logging
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
 cfg=dict(config.items("DEFAULT"))
 
 
@@ -83,14 +89,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
         if service=='viz-bin/aserver.cgi':
                 #Special handler to mimic UCAC4 vizier server import re
-                print("VIZ:",urlparse(self.path).query)
+                logger.info("VIZ:%s",urlparse(self.path).query)
                 response=services_cmd[service](urlparse(self.path).query)
         else:
                 response=services_cmd[service](qs)
 
     def help(self,params):
         self.send_response(200)
-        self.send_header("Content-type", "text/text")
+        self.send_header("Content-type", "text/plain")
         self.end_headers()
         with open('helptext.txt','r') as f:
             data=f.read()
@@ -102,7 +108,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         with open('favicon.ico','r') as f:
             data=f.read()
-        self.wfile.write(data.encode('ascii'))
+        self.wfile.write(data)
 
     def static(self,params,catalog):
         formatType,date,ra,dec,r,Type =self.standardParams(params)
@@ -132,9 +138,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         #SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
         #SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
         SCAMP="2.0.4"
-        print(params)
         params=params.split('&')
-        print(params)
+        logger.info("ucac4scamp params:%s",params)
 
         
         if params[2].find('%2b')>=0 or params[2].find('+') >=0:
@@ -163,14 +168,14 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if SCAMP=="2.0.4":
                 maxstars=int(params[6])
-                print("RA/DEC/r:",ra,dec,r,"MAXSTARS:",maxstars)
+                logger.info("ucac4scamp: RA=%s DEC=%s r=%s MAXSTARS=%s",ra,dec,r,maxstars)
                 self.sendOutput(data,'scamp')
         else:
                 limits=params[6].split(',')
                 magmin=int(float(limits[1]))
                 magmax=int(float(limits[0]))
                 maxstars=int(params[8])
-                print("RA/DEC/r:",ra,dec,r,"MIN/MAX MAG:",magmin,magmax,"MAXSTARS:",maxstars)
+                logger.info("ucac4scamp: RA=%s DEC=%s r=%s MAGmin=%s MAGmax=%s, MAXSTARS=%s",ra,dec,r,magmin,magmax,maxstars)
                 flt=(data['MAG1']<=magmin) & (data['MAG1']>=magmax)
                 data=data[flt]
                 self.sendOutput(data,'scamp')
@@ -195,7 +200,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         formatType,date,ra,dec,r,astType =self.standardParams(params)
         keys=params.get('key',[''])
         keys=map(lambda x:x.ljust(7),keys)
-        print("SEARCHING:",keys)
+        logger.info("MPC SEARCH:%s",keys)
         data=self.mpcEngine.search(keys,date,r)
         self.sendOutput(data,formatType)
 
@@ -411,10 +416,10 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         self.send_header("Content-type",contentType)
         self.end_headers()
-        print("START SENDING",size)
+        logger.info("START SENDING %s bytes",size)
         self.wfile.write(output.encode('ascii'))
         #[self.wfile.write(l) for l in output]
-        print("END SENDING")
+        logger.info("END SENDING")
 
     def standardParams(self,params):
         formatType=params.get('format',['html'])[0]
@@ -444,22 +449,21 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 class ThreadedHTTPServer(ThreadingMixIn,BaseHTTPServer.HTTPServer):
     """Handle requests in a separate thread."""
+    pass
 
 if __name__ == '__main__':
     #server_class = BaseHTTPServer.HTTPServer
     server_class = ThreadedHTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     httpd.daemon=True
-    print(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    logger.info("Server Starts on  %s:%s" ,HOST_NAME, PORT_NUMBER)
     if cfg['use_fix_mpcorb']=='True':
-        print("WARNING: use_fix_mpcorb='True'.")
-        print("All calculation will be done for a FIX_MPCORB.DAT")
-        print("Calculation for distant dates may be inacurate.")
-
-
+        logger.warning("use_fix_mpcorb='True' is set")
+        logger.warning("All calculation will be done for a FIX_MPCORB.DAT")
+        logger.warning("Calculation for distant dates may be inacurate.")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    logger.info("Server Stops - %s:%s" ,HOST_NAME, PORT_NUMBER)

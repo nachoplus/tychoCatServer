@@ -11,6 +11,11 @@ pi=np.pi
 dubliJDoffset= 2415020
 MJDoffset=2400000.5
 
+def group(lst, n):
+  for i in range(0, len(lst), n):
+    val = lst[i:i+n]
+    if len(val) == n:
+      yield tuple(val)
 
 def distance(ra0,dec0,ra1,dec1):
         #arg in degrees

@@ -8,6 +8,11 @@ import configparser
 
 #Common configuration file
 
+#Logging
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
 #General paths
 binpath=os.path.realpath(sys.argv[0])
 configpath=os.path.dirname(binpath)+"/config"

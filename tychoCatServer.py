@@ -28,7 +28,7 @@ import asteroids
 import staticcat
 
 import xlsxwriter
-from io import StringIO
+from io import BytesIO
 import pickle
 
 
@@ -249,17 +249,28 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 # FIXED. Something is wrong with this pyfits version and StringIO
     def fitsOutput(self,data):
-        #out = StringIO()
+        from astropy.table import Table
+        #out = BytesIO()
         out = open(cfg['base_dir']+'/tmp.fit','wb')
+        t=Table(data)
+        t.write(out,format='fits')
+        out.close()
+        out = open(cfg['base_dir']+'/tmp.fit','rb')
+        the_stream = out.read()   # here is your file content
+        out.close()
+        return the_stream
+
+
+
         columns=[]
 
 
         for i,t in enumerate(data.dtype.names):
-                #print data.dtype[i],data.dtype[i].char
+                #print(data.dtype[i],data.dtype[i].char)
                 #numpy to fits type casting
                 if np.issubdtype(data.dtype[i], float):
                         f='D'
-                elif data.dtype[i].char == 'S' or data.dtype[i].char == 'a':
+                elif data.dtype[i].char == 'S' or data.dtype[i].char == 'a' or data.dtype[i].char == 'U':
                         f='A'+str(data.dtype[i].itemsize)
                 elif data.dtype[i].char == 'i' or data.dtype[i].char == 'u' or data.dtype[i].char == 'h':
                         f='I'
@@ -267,7 +278,17 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         f='L'
                 columns.append(pyfits.Column(name=t,format=f))
 
-        tbhdu=pyfits.new_table(columns)
+        tbhdu = pyfits.BinTableHDU.from_columns(columns)
+        tbhdu.data= np.array(data).view(tbhdu._data_type)
+        tbhdu.writeto(out, overwrite=True)
+        out.close()
+        out = open(cfg['base_dir']+'/tmp.fit','rb')
+        the_stream = out.read()   # here is your file content
+        out.close()
+        return the_stream
+
+
+        #tbhdu=pyfits.new_table(columns)
         #print columns
         tbhdu.data= np.array(data).view(tbhdu._data_type)
 
@@ -320,7 +341,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return out
 
     def excelOutput(self,data):
-        out = StringIO()
+        out = BytesIO()
         workbook = xlsxwriter.Workbook(out)
         worksheet = workbook.add_worksheet()
         Headerformat = workbook.add_format()
@@ -417,8 +438,12 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-type",contentType)
         self.end_headers()
         logger.info("START SENDING %s bytes",size)
-        self.wfile.write(output.encode('ascii'))
-        #[self.wfile.write(l) for l in output]
+        try:
+                self.wfile.write(output.encode('ascii'))
+                logger.debug("ASCII mode")
+        except:
+                self.wfile.write(output)
+                logger.debug("Binary mode")
         logger.info("END SENDING")
 
     def standardParams(self,params):

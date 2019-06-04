@@ -16,6 +16,7 @@ import logging
 
 # Create a custom logger
 logger = logging.getLogger(__name__)
+
 cfg=dict(config.items("STATIC_CATS"))
 
 class staticCat():
@@ -31,8 +32,21 @@ class staticCat():
         h=r*2
         catalog=self.catalogFile
         f=pyfits.open(cfg[catalog])
-        data=np.array(f[1].data)
-        logger.debug("dtype:%s",data.dtype)
+        olddata=np.array(f[1].data)
+
+        newtypes=[]
+        for i,name in enumerate(olddata.dtype.names):
+                if olddata[name].dtype.str.startswith('|S'):
+                        _newtype=olddata[name].dtype.str.replace('|S','|U')
+                        logger.debug("COL: %s dtype:%s need to be changed to unicode type %s. Doing",name,olddata[name].dtype.str,_newtype)
+                        newtypes.append((name,_newtype))
+                        logger.debug("New dtype:%s",np.dtype([(name,_newtype)]))
+                else:
+                        newtypes.append((name,olddata[name].dtype.str))
+
+        _dtypes=np.dtype(newtypes)
+        data=olddata.astype(_dtypes)
+        logger.debug("size:%s final dtype:%s",data.shape,data.dtype)
         decmin=dec-r
         if decmin<=-90:
             decmin=-90

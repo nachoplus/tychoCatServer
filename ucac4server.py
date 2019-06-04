@@ -30,7 +30,7 @@ class ucac4server():
             headers=" ".join(usual_header.split()).split()
             #logger.info("Headers:%s",headers)
             logger.info("INIT module")
-            headers_units=['|S25','f8','f8','f8','f8','f8','u2','u2','f8','f8','f8','f8','u2','u2','u2','f8','f8','f8','f8','u4','f8',\
+            headers_units=['|U25','f8','f8','f8','f8','f8','u2','u2','f8','f8','f8','f8','u2','u2','u2','f8','f8','f8','f8','u4','f8',\
                      'f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','f8','u4','u1','u1','u1','u4','|S25']
             strType=[]
             for i,header in enumerate(headers):

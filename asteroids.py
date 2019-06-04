@@ -234,8 +234,13 @@ class MPCEphem:
 
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
+        logger.debug("Adding thread:%s results (%d) to the result queue.",multiprocessing.current_process().name,nrec)
         if len(Pos)>0:
+                logger.debug("Added %s",multiprocessing.current_process().name)
                 self.result_queue.put(Pos)
+        else:
+                logger.debug("%s has zero results. Skiping",multiprocessing.current_process().name)
+        logger.info("Threath:%s end. Returning to main",multiprocessing.current_process().name)
         return Pos
 
     def setNames(self,date='',sufix=".MPCORB.DAT"):
@@ -491,7 +496,7 @@ class MPCEphem:
         logger.info("CORES:%s #ASTEROIDS:%s CHUNK_SIZE:%s #CHUNKS:%s",ncores,len(asteroids),chunk_size,len(asteroids_chunks))
 
         try:
-            #print "Creating Threads ..."
+            logger.info("Creating Threads ...")
             threadsPool=[]
             #define threads
 
@@ -500,13 +505,23 @@ class MPCEphem:
                 #t = Thread(None,self.compute,None, (chunk,))
                 t=multiprocessing.Process(target=self.compute, args=(chunk,delta,))
                 threadsPool.append(t)
-            #print "Threads created..."
+
             # Start all threads
             [x.start() for x in threadsPool]
-            #print "Threads started..."
+            logger.info("Started %s threads",len(threadsPool))
+
+            #to avoid full queue retrive the result while threads are running 
             result=[]
-            for j in threadsPool:
-                result.append(self.result_queue.get())
+            while 1:
+                running = any(p.is_alive() for p in threadsPool)
+                while not self.result_queue.empty():
+                       result.append(self.result_queue.get())
+                if not running:
+                       break
+            # Wait for all of them to finish
+            [x.join() for x in threadsPool]
+            logger.info("All threads finished")
+
             #print "Threads got..."
             # Wait for all of them to finish
             [x.join() for x in threadsPool]

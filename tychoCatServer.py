@@ -106,7 +106,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "image/x-icon")
         self.end_headers()
-        with open('favicon.ico','r') as f:
+        with open('favicon.ico','rb') as f:
             data=f.read()
         self.wfile.write(data)
 

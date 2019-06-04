@@ -131,12 +131,12 @@ class satEphem():
         nrec=len(astPos)
         Pos=np.asarray(astPos,dtype=dtypes)
         #logger.debug("Result:%s",Pos)
-        if len(Pos)>0:
-           logger.debug("Adding thread:%s result to the result queue.",multiprocessing.current_process().name)
+        logger.debug("Adding thread:%s results (%d) to the result queue.",multiprocessing.current_process().name,nrec)
+        if nrec>0:
            self.result_queue.put(Pos)
            logger.debug("Added %s",multiprocessing.current_process().name)
         else:
-           logger.debug("%s has no results. Skiping",multiprocessing.current_process().name)
+           logger.debug("%s has zero results. Skiping",multiprocessing.current_process().name)
         logger.info("Threath:%s end. Returning to main",multiprocessing.current_process().name)
         return Pos
 
@@ -176,7 +176,6 @@ class satEphem():
             logger.info("Downloading file from: %s",os.path.basename(cfg["tleurl"]))
             res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
             print(res)
-            res=subprocess.getoutput("mv ALL_TLE.TXT "+tlefile)
             print(res)
             os.remove(os.path.basename(cfg["tleurl"]))
             '''
@@ -261,6 +260,8 @@ class satEphem():
 
         satellites_chunks=[satellites[x:x+chunk_size] for x in range(0, chunk_size*ncores,chunk_size)]
         if len(satellites) % ncores !=0:
+                logger.debug("remaining sats:%s",len(satellites)-chunk_size*ncores)
+                logger.debug("remaining sats:%s",satellites[chunk_size*ncores:])
                 satellites_chunks.append(satellites[chunk_size*ncores:])
 
         
@@ -282,16 +283,19 @@ class satEphem():
 
             # Start all threads
             [x.start() for x in threadsPool]
-            for t in threadsPool:
-                    print(t.name)
             logger.info("Started %s threads",len(threadsPool))
+            
+            #to avoid full queue retrive the result while threads are running 
+            result=[]
+            while 1:
+                running = any(p.is_alive() for p in threadsPool)
+                while not self.result_queue.empty():
+                       result.append(self.result_queue.get())
+                if not running:
+                       break
             # Wait for all of them to finish
             [x.join() for x in threadsPool]
             logger.info("All threads finished")
-            result=[]
-            for j in threadsPool:
-                print(self.result_queue.get())
-                result.append(self.result_queue.get())
 
             for i,r in enumerate(result):
                 if i==0:

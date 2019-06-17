@@ -137,7 +137,7 @@ class satEphem():
            logger.debug("Added %s",multiprocessing.current_process().name)
         else:
            logger.debug("%s has zero results. Skiping",multiprocessing.current_process().name)
-        logger.info("Threath:%s end. Returning to main",multiprocessing.current_process().name)
+        logger.debug("Threath:%s end. Returning to main",multiprocessing.current_process().name)
         return Pos
 
     def loadTLEfile(self,date):
@@ -172,11 +172,10 @@ class satEphem():
         if not os.path.isfile(tlefile):
             logger.info("TLE %s not exit. Downloading" , os.path.basename(tlefile))
             res=subprocess.getoutput("wget -c "+cfg["tleurl"])
-            logger.info("res:%s",res)
-            logger.info("Downloading file from: %s",os.path.basename(cfg["tleurl"]))
+            logger.info("\n%s",res)
+            logger.info("Downloaded file: %s",os.path.basename(cfg["tleurl"]))
             res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
-            print(res)
-            print(res)
+            logger.info("Unzip file: %s",res)
             os.remove(os.path.basename(cfg["tleurl"]))
             '''
             #Clasif TLE

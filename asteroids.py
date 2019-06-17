@@ -240,7 +240,7 @@ class MPCEphem:
                 self.result_queue.put(Pos)
         else:
                 logger.debug("%s has zero results. Skiping",multiprocessing.current_process().name)
-        logger.info("Threath:%s end. Returning to main",multiprocessing.current_process().name)
+        logger.debug("Threath:%s end. Returning to main",multiprocessing.current_process().name)
         return Pos
 
     def setNames(self,date='',sufix=".MPCORB.DAT"):
@@ -353,7 +353,12 @@ class MPCEphem:
                 else:
                         mask.append(False)                ,self.mpcorbfile
         mask=np.array(mask)
-        data=data[mask]
+        if len(mask)!=0:
+                data=data[mask]
+        else:
+                logger.warning("AREA WITHOUT ASTEROIDS. RAmin=%s,RAmax=%s,DECmin=%s,DECmax=%s,RA=%s,DEC=%s,r=%s",ramin,ramax,decmin,decmax,ra,dec,r)
+                filter_asteroid ={}
+                return filter_asteroid
 
         if ramin<ramax:
             flt=(data['RA']<=ramax) & (data['RA']>=ramin) & (data['DEC']<=decmax) & (data['DEC']>=decmin) | (data['SPEED']>=speed_)

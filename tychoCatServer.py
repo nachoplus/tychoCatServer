@@ -39,7 +39,7 @@ from helper import *
 import logging
 
 # Create a custom logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('catserver')
 
 cfg=dict(config.items("DEFAULT"))
 
@@ -48,7 +48,7 @@ cfg=dict(config.items("DEFAULT"))
 #To use include server_address=<IP> line in your main.cfg
 
 #By default listen all adapters
-HOST_NAME = ''
+HOST_NAME = '0.0.0.0'
 
 PORT_NUMBER = int(cfg['server_port']) # Maybe set this to 9000.
 
@@ -138,6 +138,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         #SCAMP 1.7.0 %s %s%s ucac4 -c %s %s -r %16g -lm %f,%f -m 10000000
         #SCAMP 2.0.4 %s %s%s ucac4 -c %s %s -r %16g  -m 10000000
         SCAMP="2.0.4"
+
         params=params.split('&')
         logger.info("ucac4scamp params:%s",params)
 

@@ -10,7 +10,7 @@ from config import *
 import logging
 
 # Create a custom logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('bootstrap')
 
 
 def exe(cmd):
@@ -81,7 +81,8 @@ def jplEph():
 def pyephem():
         logger.info("Installing modified version of pyephem")
         org_path=os.getcwd()
-        os.chdir('pyephem/pyephem-3.7.5.1')
+        #os.chdir('pyephem/pyephem-3.7.5.1')
+        os.chdir('ephem-3.7.6.0')
         cmd='python3 setup.py install'
         logger.info("%s",exe(cmd))
         os.chdir(org_path)
@@ -97,7 +98,8 @@ if __name__ == '__main__':
         ucac4files()
         lunar()
         jplEph()
-        pyephem()
+        #Now upstream is fixed.
+        #pyephem()
         cfg=dict(config.items("MPCORB"))
         path=cfg['base_dir']
         logger.warning("================================================")

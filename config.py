@@ -57,4 +57,5 @@ def printCfg():
             print(item)
 
 if __name__ == '__main__':
-	printCfg()
+     print(os.environ)
+     printCfg()

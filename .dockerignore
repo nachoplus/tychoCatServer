@@ -1,0 +1,7 @@
+probes_and_tries
+docker
+pyephem
+*.pyc
+.git
+*~
+var

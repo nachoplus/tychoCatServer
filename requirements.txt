@@ -7,3 +7,4 @@ Xlsxwriter
 urlparse2
 simplejson
 ephem==3.7.6.0
+requests

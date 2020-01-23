@@ -1,3 +1,6 @@
 [submodule "jpl_eph"]
 	path = jpl_eph
 	url = https://github.com/Bill-Gray/jpl_eph.git
+[submodule "lunar"]
+	path = lunar
+	url = https://github.com/Bill-Gray/lunar.git

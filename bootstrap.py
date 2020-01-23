@@ -50,12 +50,27 @@ def ucac4src():
 def lunar():
         logger.info("Installing integrat from project pluto:")
         org_path=os.getcwd()
+
         os.chdir('lunar')
-        cmd='./configure'
+        cmd='make  clean'
         logger.info("%s",exe(cmd))
-        cmd='make -f linlunar.mak clean'
+        cmd='make '
         logger.info("%s",exe(cmd))
-        cmd='make  -f linlunar.mak'
+        cmd='make install'
+        logger.info("%s",exe(cmd))
+        os.chdir(org_path)
+
+        os.chdir('jpl_eph')
+        cmd='make  clean'
+        logger.info("%s",exe(cmd))
+        cmd='make '
+        logger.info("%s",exe(cmd))
+        cmd='make install'
+        logger.info("%s",exe(cmd))
+        os.chdir(org_path)
+
+        os.chdir('lunar')
+        cmd='make integrat'
         logger.info("%s",exe(cmd))
         cmd='chmod a+x integrat'
         logger.info("%s",exe(cmd))

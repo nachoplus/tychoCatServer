@@ -22,20 +22,18 @@ def exe(cmd):
 
 def ucac4files():
         logger.info("Step 1. ==============================")
-        logger.info("First download UCAC4 catalog files:")
+        logger.info("Downloading UCAC4 catalog files:")
         logger.info("visit http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/322A for catalog description")
         cfg=dict(config.items("UCAC4"))
         path=cfg['datadir']
-        tmppath=path+"/tmp"
-        if not os.path.exists(path):
-                logger.info("Creating UCAC4 catalog dir:%s",path)
-                os.makedirs(path)
-                os.makedirs(tmppath)
+        if not os.path.exists(path+"/UCAC4.finished"):
+                if not os.path.exists(path):
+                    logger.info("Creating UCAC4 catalog dir:%s",path)
+                    os.makedirs(path)
                 logger.info("Downloading UCAC4 files to:%s",path)
-                call_list=["wget","-cr","ftp://cdsarc.u-strasbg.fr/pub/cats/I/322A/UCAC4/*","-P",tmppath]
+                call_list=["wget","-cr","-nH","--cut-dirs=5","ftp://cdsarc.u-strasbg.fr/pub/cats/I/322A/UCAC4/*","-P",path]
                 p=call(call_list)
-                exe('mv '+tmppath+"/cdsarc.u-strasbg.fr/pub/cats/I/322A/UCAC4/* "+path)
-                shutil.rmtree(tmppath)
+                logger.info("%s",exe("touch "+path+"/UCAC4.finished"))
         else:
                 logger.info("UCAC4 files already download")
 
@@ -94,7 +92,10 @@ def jplEph():
                 logger.info("%s allready downloaded",file_name)
 
 def pyephem():
+        #Not needed. Now upstream is fixed.
         logger.info("Installing modified version of pyephem")
+        logger.info("Not needed. Now upstream is fixed.")
+        return
         org_path=os.getcwd()
         #os.chdir('pyephem/pyephem-3.7.5.1')
         os.chdir('ephem-3.7.6.0')
@@ -110,10 +111,10 @@ if __name__ == '__main__':
         logger.warning("================================================")
         logger.warning("")
         ucac4src()
-        #ucac4files()
+        ucac4files()
         lunar()
         jplEph()
-        #Now upstream is fixed.
+        #Not needed. Now upstream is fixed.
         #pyephem()
         cfg=dict(config.items("MPCORB"))
         path=cfg['base_dir']

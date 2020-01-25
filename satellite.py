@@ -7,7 +7,7 @@ import ephem
 import numpy as np
 import subprocess
 import multiprocessing
-
+import glob
 
 from config import *
 from helper import *
@@ -147,8 +147,7 @@ class satEphem():
         self.downloadTLEfile()
         dir_dest=cfg["tledir"]
         d=ephem.date(date)
-        dirs = os.listdir( dir_dest)
-        #logger.debug("TLE files in library: %s",dirs)
+        dirs = [os.path.basename(x) for x in glob.glob( dir_dest+'/??-??-??.TLE')]
         days=list(map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs))
         distance=list(map(lambda x:np.abs(d-x),days))
         minD=np.min(distance)
@@ -176,6 +175,9 @@ class satEphem():
             logger.info("Downloaded file: %s",os.path.basename(cfg["tleurl"]))
             res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
             logger.info("Unzip file: %s",res)
+            res=subprocess.getoutput("mv ALL_TLE.TXT "+tlefile)
+            logger.info("renaming ALL_TLE.TXT to %s",tlefile)
+            logger.info("\n%s",res)
             os.remove(os.path.basename(cfg["tleurl"]))
             '''
             #Clasif TLE

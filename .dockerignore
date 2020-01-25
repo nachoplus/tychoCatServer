@@ -5,3 +5,6 @@ pyephem
 .git
 *~
 var
+.directory
+.gitignore
+.gitmodule

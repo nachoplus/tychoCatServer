@@ -173,12 +173,16 @@ class satEphem():
             res=subprocess.getoutput("wget -c "+cfg["tleurl"])
             logger.info("\n%s",res)
             logger.info("Downloaded file: %s",os.path.basename(cfg["tleurl"]))
-            res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
-            logger.info("Unzip file: %s",res)
+            import zipfile
+            with zipfile.ZipFile(os.path.basename(cfg["tleurl"]),"r") as zip_ref:
+                zip_ref.extractall()
+            #res=subprocess.getoutput("unzip "+os.path.basename(cfg["tleurl"]))
+            #logger.info("Unzip file: %s",res)
             res=subprocess.getoutput("mv ALL_TLE.TXT "+tlefile)
             logger.info("renaming ALL_TLE.TXT to %s",tlefile)
             logger.info("\n%s",res)
             os.remove(os.path.basename(cfg["tleurl"]))
+            
             '''
             #Clasif TLE
             #http://www.prismnet.com/~mmccants/tles/classfd.zip

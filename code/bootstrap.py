@@ -3,7 +3,7 @@
 
 from subprocess import Popen,call
 import subprocess,os, sys,shutil
-from urllib.request import urlretrieve
+
 
 from config import *
 
@@ -25,7 +25,7 @@ def ucac4src():
         os.chdir(binpath+'/ucac4.src')
         logger.info("Installing ucac4 swig rutines")
         cmd='./mkswig.sh'
-        exe(cmd)
+        logger.info("%s",exe(cmd))
         os.chdir(org_path)
 
 def lunar():
@@ -60,47 +60,16 @@ def lunar():
         os.chdir(org_path)
 
 
-def pyephem():
-        #Not needed. Now upstream is fixed.
-        logger.info("Installing modified version of pyephem")
-        logger.info("Not needed. Now upstream is fixed.")
-        return
-        org_path=os.getcwd()
-        #os.chdir('pyephem/pyephem-3.7.5.1')
-        os.chdir('ephem-3.7.6.0')
-        cmd='python3 setup.py install'
-        logger.info("%s",exe(cmd))
-        os.chdir(org_path)
-
 if __name__ == '__main__':
         logger.warning("================================================")
-        logger.warning("First time run. Only need to run one time.Setting up")
-        logger.warning("It could be take very-very long time")
-        logger.warning("CHECK your data_dir in config/main.cfg file!!!")
+        logger.warning("Bootstraping... compiling and installing code   ")
         logger.warning("================================================")
-        logger.warning("")
+        logger.warning("Step1")
         ucac4src()
+        logger.warning("Step2")
         lunar()
-        #Not needed. Now upstream is fixed.
-        #pyephem()
-        cfg=dict(config.items("MPCORB"))
-        path=cfg['base_dir']
         logger.warning("================================================")
         logger.warning("                        READY!")
         logger.warning("================================================")
-        logger.warning("All the data was put on:%s",path)
-        logger.warning("Now, depending of the setting og 'use_fix_mpcorb':")
-        logger.warning("")
-        logger.warning("use_fix_mpcorb='True'")
-        logger.warning("\tDownload MCPORB.DAT rename to FIX_MPCORB.DAT and")
-        logger.warning("\tput in the 'datempcorb' dir:")
-        logger.warning("\t%s",cfg['datempcorb'])
-        logger.warning("")
-        logger.warning("use_fix_mpcorb='False'")
-        logger.warning("\tRun updaterCatServer.py to create the cache.")
-        logger.warning("\tThe first run take very very very long time")
-        logger.warning("\tDepending of your dateto/datefrom may be several days!!")
-        logger.warning("")
-        logger.warning("Actual value of use_fix_mpcorb=%s",cfg['use_fix_mpcorb'])
-        logger.warning("================================================")
+
 

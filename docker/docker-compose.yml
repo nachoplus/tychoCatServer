@@ -13,7 +13,10 @@ services:
     tycho-cat-server:
         container_name: tycho-downloader
         build:
-            context: ../
+            context: ..
+            dockerfile: docker/Dockerfile
+            args:
+               srcpath: code
         command: downloader.py
         volumes:
             - tycho-cat-server-data:/app/var

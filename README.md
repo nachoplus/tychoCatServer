@@ -39,7 +39,7 @@ Mandatory changes are:
 use_fix_mpcorb='True'
 #HOME of scrips
 home_dir=/home/nacho/work/tychoCatServer
-#Home off all cache and catalog data
+#Home of  cache and catalog data
 base_dir=%(home_dir)s/../var/catserver 
 ```
 for use_fix_mpcorb='False' the following setting are also relevant:

@@ -3,9 +3,9 @@ ARG srcpath
 RUN apt-get install -y gcc make
 COPY requirements.txt /app/
 RUN pip3 install -r  /app/requirements.txt 
-COPY /${srcpath} /app
+COPY / /app
 WORKDIR /app
-RUN ["python3","/app/bootstrap.py"]
+RUN ["python3","code/bootstrap.py"]
 ENTRYPOINT ["python3"]
-CMD  ["tychoCatServer.py"]
+CMD  ["code/tychoCatServer.py"]
 

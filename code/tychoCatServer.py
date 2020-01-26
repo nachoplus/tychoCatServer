@@ -98,7 +98,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        with open('helptext.txt','r') as f:
+        with open(binpath+'/helptext.txt','r') as f:
             data=f.read()
         self.wfile.write(data.encode('ascii'))
 
@@ -209,7 +209,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def htmlOutput(self,data):
         out='<html>'
         out +='<head><style>'
-        css=open("lasagra.css",'r')
+        css=open(binpath+"/lasagra.css",'r')
         out +=css.read()
         out +='</style></head>'
         out +="<div class='lasagrastyle'><table>"

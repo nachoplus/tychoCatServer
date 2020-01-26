@@ -14,8 +14,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 
 #General paths
-binpath=os.path.realpath(sys.argv[0])
-configpath=os.path.dirname(binpath)+"/config"
+binpath=os.path.dirname(os.path.realpath(sys.argv[0]))
+#configpath=binpath+"/config"
+configpath="./config"
 
 
 #Read values from main.cfg

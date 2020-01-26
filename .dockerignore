@@ -4,6 +4,7 @@ docker
 .git
 *~
 var
+env
 .directory
 .gitignore
 .gitmodule

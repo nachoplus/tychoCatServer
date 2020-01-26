@@ -22,7 +22,7 @@ def exe(cmd):
 
 def ucac4src():
         org_path=os.getcwd()
-        os.chdir('ucac4.src')
+        os.chdir(binpath+'/ucac4.src')
         logger.info("Installing ucac4 swig rutines")
         cmd='./mkswig.sh'
         exe(cmd)
@@ -32,7 +32,7 @@ def lunar():
         logger.info("Installing integrat from project pluto:")
         org_path=os.getcwd()
 
-        os.chdir('lunar')
+        os.chdir(binpath+'/lunar')
         cmd='make  clean'
         logger.info("%s",exe(cmd))
         cmd='make '
@@ -41,7 +41,7 @@ def lunar():
         logger.info("%s",exe(cmd))
         os.chdir(org_path)
 
-        os.chdir('jpl_eph')
+        os.chdir(binpath+'/jpl_eph')
         cmd='make  clean'
         logger.info("%s",exe(cmd))
         cmd='make '
@@ -50,7 +50,7 @@ def lunar():
         logger.info("%s",exe(cmd))
         os.chdir(org_path)
 
-        os.chdir('lunar')
+        os.chdir(binpath+'/lunar')
         cmd='make integrat'
         logger.info("%s",exe(cmd))
         cmd='chmod a+x integrat'

@@ -7,6 +7,7 @@ services:
         - 9000:9000
         volumes:
             - tycho-cat-server-data:/app/var
+            - ../config:/app/config
         links:
             - tycho-cat-server
 
@@ -17,9 +18,10 @@ services:
             dockerfile: docker/Dockerfile
             args:
                srcpath: code
-        command: downloader.py
+        command: code/downloader.py
         volumes:
             - tycho-cat-server-data:/app/var
+            - ../config:/app/config
 
 volumes:
         tycho-cat-server-data: {}

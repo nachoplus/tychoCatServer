@@ -1,6 +1,6 @@
 FROM python:3.7.0-stretch
 ARG srcpath
-RUN apt-get install -y gcc make
+RUN apt-get update && apt upgrade -y && apt-get install -y gcc make swig python3-dev
 COPY requirements.txt /app/
 RUN pip3 install -r  /app/requirements.txt 
 COPY / /app

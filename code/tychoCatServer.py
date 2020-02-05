@@ -30,6 +30,7 @@ import staticcat
 import xlsxwriter
 from io import BytesIO
 import pickle
+import simplejson as json
 
 
 
@@ -106,7 +107,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "image/x-icon")
         self.end_headers()
-        with open('favicon.ico','rb') as f:
+        with open(binpath+'/favicon.ico','rb') as f:
             data=f.read()
         self.wfile.write(data)
 
@@ -369,7 +370,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         as need by scamp refcatlog.
         Not finished but enough to work with scamp
         '''
-        out="#======== UCAC4 server (2014-09-25, V0.01) ======== LA SAGRA mimic CDS, Strasbourg ========\n"
+        out="#======== UCAC4 server (2014-09-25, V0.01) ======== TYCHO-cat-server mimic CDS, Strasbourg ========\n"
         out+="#Center: dummy dummy\n"
         out+='#UCAC4    |    RA  (ICRS) Dec     +/- +/-  mas  EpRA    EpDE  | f.mag  a.mag  +/- |of db| Na  Nu  Cu| pmRA(mas/yr)pmDE  +/-  +/-|MPOS1      UCAC2      Tycho-2    |     2Mkey   Jmag  +/-:cq   Hmag  +/-:cq   Kmag  +/-:cq|  Bmag:1s.   Vmag:1s.   gmag:1s.   rmag:1s.   imag:1s.|gc.HAbhZBLNS|LED 2MX|;     r(")\n'
         for d in data:
@@ -386,6 +387,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def pickleOutput(self,data):
         return pickle.dumps(data)
+
+    def jsonOutput(self,data):
+        dic = {}
+        dic['content'] = data
+        return json.dumps(dic)
 
     def sendOutput(self,data,formatType):
         self.send_response(200)
@@ -432,6 +438,12 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if formatType.startswith('pickle'):
             output=self.pickleOutput(data)
+            size=len(output)
+            self.send_header("Content-Length",str(size))
+            contentType="application/python-pickle"
+
+        if formatType.startswith('json'):
+            output=self.jsonOutput(data)
             size=len(output)
             self.send_header("Content-Length",str(size))
             contentType="application/python-pickle"

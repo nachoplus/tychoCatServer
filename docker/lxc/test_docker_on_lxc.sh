@@ -1,3 +1,4 @@
+# FROM: https://memcpy.io/running-docker-privileged-inside-of-lxc-lxd.html
 lxc launch images:ubuntu/bionic container
 
 lxc config set container security.nesting true

@@ -3,7 +3,7 @@
 
 
 import ephem
-import commands,os, sys
+import subprocess,os, sys
 from subprocess import Popen,call
 from threading import Thread
 import multiprocessing
@@ -19,8 +19,19 @@ import time
 
 from config import *
 from helper import *
+
+# Create a custom logger
+logger = logging.getLogger('updater')
+
 cfg=dict(config.items("MPCORB"))
 cfgOBS=dict(config.items("OBSERVATORY"))
+
+def exe(cmd):
+        logger.debug("EXE CMD:%s",cmd)
+        res=subprocess.getoutput(cmd)
+        logger.debug("CMD RESULTS:%s",res)
+        return res
+
 
 class propagateMPCorb:
     '''
@@ -33,13 +44,13 @@ class propagateMPCorb:
     dateto=float(cfg['dateto'])
     eachdays=float(cfg['eachdays'])
 
-    print(datefrom,date0,dateto,eachdays)
+    logger.info('%s %s %s %s',datefrom,date0,dateto,eachdays)
     jd_range_plus=list(np.arange(date0,dateto,eachdays))
     jd_range_minus=list(np.arange(date0,datefrom,-eachdays))
     jd_range=set(jd_range_minus+jd_range_plus)
-    print("jd_range_plus",jd_range_plus)
-    print("jd_range_minus:",jd_range_minus)
-    print("jd_range",jd_range)
+    logger.info("jd_range_plus:%s",jd_range_plus)
+    logger.info("jd_range_minus:%s",jd_range_minus)
+    logger.info("jd_range:%s",jd_range)
 
     def downloadMPCORBfile(self):
         '''
@@ -47,32 +58,40 @@ class propagateMPCorb:
         decompresse and change name to reflect 
         the date
         '''
+        cfg=dict(config.items("MPCORB"))
         dir_dest=cfg["datempcorb"]
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
         fileD='MPCORB.DAT'
         mpcorbfile=dir_dest+'/'+fileD
-        print(mpcorbfile)
-        if not os.path.isfile(mpcorbfile):
-            print("MPCORB file not exit:",mpcorbfile)
-            print("Downloading")
+        datedmpcorbfile=dir_dest+'/'+getToday()+'.'+fileD
+        logger.info("Checking for updated MPCORB.DAT:"+datedmpcorbfile)
+        if not os.path.isfile(datedmpcorbfile):
+            logger.info("MPCORB file not exists:%s",datedmpcorbfile)
+            logger.info("Downloading")
             filename=os.path.basename(cfg["mpcorburl"])
-            print(filename)
+            logger.info(filename)
             cmd="wget -c "+cfg["mpcorburl"]+" -O "+dir_dest+"/"+filename
-            print(cmd)
-            res=commands.getoutput(cmd)
-            print(res)
-            res=commands.getoutput("gunzip -f "+dir_dest+"/"+filename)
-            print(res)
-            #make a copy to trace
-            if not os.path.exists(dir_dest+"/kernels"):
-               os.makedirs(dir_dest+"/kernels")
-            res=commands.getoutput("cp  "+dir_dest+"/"+fileD+ " "+dir_dest+"/kernels/"+getToday()+'.'+fileD)
-            print(res)
-        else:
-            print("%s EXIST. Using" % fileD)
+            logger.info(cmd)
+            res=exe(cmd)
+            logger.info(res)
+            res=exe("gunzip -f "+dir_dest+"/"+filename)
+            logger.info(res)
+            logger.info("Renaming "+mpcorbfile+ " to "+datedmpcorbfile)
+            res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
+            logger.info(res)
+            logger.info("Cleaning FIX_guest_* cache files")
+            res=exe("rm "+cfg["guestdbdir"]+"/FIX_guest_????-??-??.p")
+            logger.info(res)                  
 
-        return fileD
+        else:
+            logger.info("%s EXIST. Using" % datedmpcorbfile)
+
+        logger.info("Creating symbolic link from "+getToday()+'.'+fileD+ " to "+ dir_dest+ "/MPCORB.DAT")
+        res=exe("ln -s -f "+getToday()+'.'+fileD+" "+ dir_dest+ "/MPCORB.DAT")
+        logger.info(res)
+
+        return "MPCORB.DAT"
 
     def downloadDAILYfile(self):
         '''
@@ -84,31 +103,32 @@ class propagateMPCorb:
         dir_dest=cfg["datempcorb"]
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
-        print("Downloading")
+        logger.info("Downloading")
         filename=os.path.basename(cfg["dailyurl"])
         mpcorbfile=dir_dest+'/'+filename
-        print(mpcorbfile)
+        logger.info(mpcorbfile)
         if  os.path.isfile(mpcorbfile):
                 os.remove(mpcorbfile)
         cmd="wget -c "+cfg["dailyurl"]+" -O "+mpcorbfile
-        print(cmd)
-        res=commands.getoutput(cmd)
-        print(res)
+        logger.info(cmd)
+        res=exe(cmd)
+        logger.info(res)
 
         fileD=self.getLastKeyDate(filename)+'.mpcorb'
         
         if  os.path.isfile(dir_dest+"/"+fileD):
-            print("File ",fileD," already exist. Delete before proceed.\nQuitting")
+            logger.info("File "+fileD+" already exist. Delete before proceed.\nQuitting")
             return(False)
 
-        res=commands.getoutput("mv  "+mpcorbfile+ " "+dir_dest+"/"+fileD)
-        print(res)
+        res=exe("mv  "+mpcorbfile+ " "+dir_dest+"/"+fileD)
+        logger.info(res)
         #make a copy to trace
         if not os.path.exists(dir_dest+"/kernels"):
            os.makedirs(dir_dest+"/kernels")
-        res=commands.getoutput("cp  "+dir_dest+"/"+fileD+ " "+dir_dest+"/kernels/"+getToday()+'.'+fileD)
-        print(res)
-        print(fileD)
+        res=exe("cp  "+dir_dest+"/"+fileD+ " "+dir_dest+"/kernels/"+getToday()+'.'+fileD)
+        logger.info(res)
+        logger.info(fileD)
+
         return fileD
 
     def getLastKeyDate(self,mpcfile):
@@ -124,11 +144,11 @@ class propagateMPCorb:
         key=''
         for key in content_keys_list:
                 date_ = date_from_designation(key)
-                #print date_
+                #logger.info date_
                 if discover_date <= date_ :
                         discover_date = date_
                         k=key
-        print(k,discover_date)
+        logger.info("%s %s",k,discover_date)
         return k
 
 
@@ -141,10 +161,10 @@ class propagateMPCorb:
         using Bill Gray integrat soft
         '''
         de_jpl=cfg["de_jpl"]
-        call_list=["./integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
-        print(call_list)
+        call_list=["./code/integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
+        logger.info(call_list)
         p=call(call_list)
-        print(p)
+        logger.info(p)
 
     def propagate_thread(self,jd_range,mpcfile):
       '''
@@ -160,17 +180,17 @@ class propagateMPCorb:
         mpcorb_to="%s/%d.%s" % (self.datedmpcorb,jd,mpcfile)
 
         if  not os.path.isfile(mpcorb_from):
-            print("File ",mpcorb_from," does not exist. Quitting")
+            logger.info("File %s does not exist. Quitting",mpcorb_from)
             return
 
         if  os.path.isfile(mpcorb_to):
-            print("File ",mpcorb_to," exist. Skipping")
+            logger.info("File %s  exist. Skipping",mpcorb_to)
             continue
         
         #Check if lock
         lockfile=mpcorb_to+'.lock'
         if  os.path.isfile(lockfile):
-            print("File ",mpcorb_to," is locked.")
+            logger.info("File ",mpcorb_to," is locked.")
             return
 
         #lock while computing...
@@ -187,28 +207,28 @@ class propagateMPCorb:
         Integrat the mpcfile over the whole timespan.
         Two threads UP/DOWN to speed up
         '''
-        print(self.jd_range_plus)
+        logger.info(self.jd_range_plus)
         newdate=str(self.date0)
         mpcorb_from="%s/%s" % (self.datedmpcorb,mpcfile)
         mpcorb_to="%s/%d.%s" % (self.datedmpcorb,self.date0,mpcfile)
         if  not os.path.isfile(mpcorb_to):
             self.timeShift(mpcorb_from,mpcorb_to,newdate)
         else:
-            print("File ",mpcorb_to," exist. Continue")
+            logger.info("File ",mpcorb_to," exist. Continue")
 
 
         try:
-            print("Creating Threads ...")
+            logger.info("Creating Threads ...")
             tUP = Thread(None,self.propagate_thread,None, (self.jd_range_plus, mpcfile, ))
             tDOWN = Thread(None,self.propagate_thread,None, (self.jd_range_minus, mpcfile, ))
             tDOWN.start()
             tUP.start()
             tDOWN.join()
             tUP.join()
-            print("UP/DOWN Threads created...")
+            logger.info("UP/DOWN Threads created...")
         except Exception as e:
-            print("Thread error...")
-            print(e)
+            logger.info("Thread error...")
+            logger.info(e)
 
     def initMPC(self):
             mpcfile=self.downloadMPCORBfile()
@@ -218,41 +238,41 @@ class propagateMPCorb:
     def populateGuestDB(self):
             datefrom=self.datefrom-dubliJDoffset
             dateto=self.dateto-dubliJDoffset
-            mpc=asteroids.MPCephem()
+            mpc=asteroids.MPCEphem()
             for d in np.arange(datefrom+1,dateto-1):
                 fecha=ephem.date(d)
                 dt_fecha=fecha.datetime()
                 f=dt_fecha.strftime("%Y-%m-%d %H:%M:%S")
                 if mpc.initGuestPos(f):
-                        print("guestDB form date %s done (Exist or Created)" %f)
+                        logger.info("guestDB form date %s done (Exist or Created)",f)
                 else:
-                        print("guestDB form date %s FAIL!" %f)
+                        logger.info("guestDB form date %s FAIL!",f)
 
     def updateGuest_DAILY(self,mpcfile):
             datefrom=self.datefrom-dubliJDoffset
             dateto=self.dateto-dubliJDoffset
-            mpc=asteroids.MPCephem()
+            mpc=asteroids.MPCEphem()
             for d in np.arange(datefrom+1,dateto-1):
                 fecha=ephem.date(d)
                 dt_fecha=fecha.datetime()
                 f=dt_fecha.strftime("%Y-%m-%d %H:%M:%S")
-                print("Updating guest DB")
+                logger.info("Updating guest DB")
                 self.updateGuestDB(f,mpcfile)
 
 
 
     def updateGuestDB(self,date,mpcfile):
         #add or update date_guestDB ussing new records in orbfile
-        mpcEngine=asteroids.MPCephem()
+        mpcEngine=asteroids.MPCEphem()
         mpcEngine.setNames(date,sufix='.'+mpcfile)
         if not os.path.isfile(mpcEngine.guestDB):
-                print("GuestDB:",mpcEngine.guestDB," DOES NOT EXIST. ")
+                logger.info("GuestDB:"+ mpcEngine.guestDB+" DOES NOT EXIST. ")
                 return
         mpcEngine.loadMPCorb(mpcEngine.mpcorbfile)
         #Call compute
         mpcEngine.setObserver(lon=cfgOBS["lon"],lat=cfgOBS["lat"],elev=cfgOBS["elev"])
         mpcEngine.setDate(date)
-        print("Going multithreading..")
+        logger.info("Going multithreading..")
         dummy=mpcEngine.threadCompute(mpcEngine.asteroids,ephem.hour*12)
         if len(dummy)==0:
                 return
@@ -260,13 +280,13 @@ class propagateMPCorb:
         newGuestPos=dummy[['KEY','RA','DEC','MAG','SPEED','TYPE']]
         flt=(newGuestPos['MAG']<=float(cfg['maxmag']))
         #get the new records
-        newGuestPos=newGuestPos[flt]http.server
+        newGuestPos=newGuestPos[flt]
         if len(newGuestPos)==0:
-                print("Not new coords")
+                logger.info("Not new coords")
                 return
 
         #retrive the old DB
-        print("Updating guestDB:",mpcEngine.guestDB)
+        logger.info("Updating guestDB:%s",mpcEngine.guestDB)
         GuestPos=pickle.load(open( mpcEngine.guestDB, "rb" ) )
 
 
@@ -281,15 +301,15 @@ class propagateMPCorb:
         n_notchange=len(NotChanged)
         n_update=len(newGuestPos)
         n_orginal=len(GuestPos)
-        print(date)
-        print("Num records in old DB:",n_orginal)
-        print("Num of records in update:",n_update)
-        print("Num records not changed:",n_notchange)
-        print("Num records TO changed:",n_orginal-n_notchange)
-        print("Num records TO add:",n_update-(n_orginal-n_notchange))
+        logger.info(date)
+        logger.info("Num records in old DB:",n_orginal)
+        logger.info("Num of records in update:",n_update)
+        logger.info("Num records not changed:",n_notchange)
+        logger.info("Num records TO changed:",n_orginal-n_notchange)
+        logger.info("Num records TO add:",n_update-(n_orginal-n_notchange))
         guestPos=np.hstack((NotChanged,newGuestPos))
         n_total_new=len(guestPos)
-        print("Num record in the new DB:",n_total_new)
+        logger.info("Num record in the new DB:&s",n_total_new)
 
         '''
         #first update old records
@@ -309,18 +329,18 @@ class propagateMPCorb:
         #Update MPCORB.file with the new DAILY.DAT
         #Download and propagate elements 
 
-        print("propagating DAILY.DAT")
+        logger.info("propagating DAILY.DAT")
         self.propagate(mpcdaily)
         dd=mpcdaily.split('.')[0]
-        print(dd,mpcdaily.split('.'))
+        logger.info("%s %s",dd,mpcdaily.split('.'))
         #The update
         for d in self.jd_range:
-                print(d)
+                logger.info(d)
                 mpcorb_org="%d.MPCORB.DAT" % (d)
                 update_records="%d.%s.mpcorb" % (d,dd)
-                print("Updating %s with the records in %s" % (mpcorb_org,update_records))
+                logger.info("Updating %s with the records in %s" ,mpcorb_org,update_records)
                 if not self.updateMPC(mpcorb_org,update_records):
-                        print("Fail to update!")
+                        logger.info("Fail to update!")
 
         return 
 
@@ -329,7 +349,7 @@ class propagateMPCorb:
     def readFile(self,filename):
         dir_dest=cfg["datempcorb"]
         filename=dir_dest+"/"+filename
-        print("Reading:",filename)
+        logger.info("Reading:%s",filename)
         MPC = open(filename, "r")
         content=MPC.readlines()
         #skip headers comments
@@ -358,13 +378,13 @@ class propagateMPCorb:
         mpcfile=dir_dest+"/"+mpcfile
         #This an update so check if allready exist the file
         if  not os.path.isfile(mpcfile):
-            print("File ",mpcfile," does not exist. Quitting")
+            logger.info("File ",mpcfile," does not exist. Quitting")
             return True
 
         #Check if lock
         lockfile=mpcfile+'.lock'
         if  os.path.isfile(lockfile):
-            print("File ",mpcfile," is locked. Quitting")
+            logger.info("File ",mpcfile," is locked. Quitting")
             return False
 
         #lock while computing...
@@ -386,12 +406,12 @@ class propagateMPCorb:
                 seen.add(x)
             else:
                 dupli.append(x)
-        print("UPDATING ",len(AA),"RECORDS, UNIQUE:",len(uniq),"DUPLICATE:",len(dupli))
+        logger.info("UPDATED RECORDS:%u, UNIQUES:%u, DUPLICATE:%u",len(AA),len(uniq),len(dupli))
         contentA=contentA[np.logical_not(mask)]
         nkeep=len(contentA)
         nupdated=len(mask[mask])
         nadded=nrecords_update-nupdated
-        print(mpcfile,"\nRECORDS:",nrecords,"/",nrecords_update," TO BE UPDATED:",nupdated,"TO BE ADDED:",nadded,"KEEP:",nkeep,"CHECK:",((nkeep+nupdated)==nrecords))
+        #logger.info(mpcfile,"\nRECORDS:%u/%u TO BE UPDATED:%u TO BE ADDED:%u KEEPED:%u CHECK:%u",nrecords,nrecords_update,nupdated,nadded,nkeep,((nkeep+nupdated)==nrecords))
 
         r=np.hstack((contentA,content_updateA))
         #r=AA
@@ -411,7 +431,7 @@ class propagateMPCorb:
             with open(self.datedmpcorb+"/"+f2, 'r') as file2:
                 same = set(file2).difference(file1)
         same.discard('\n')
-        print(list(same))
+        logger.info(list(same))
 
     def DailyHousekeep(self):
         dir_dest=cfg["datempcorb"]
@@ -430,18 +450,19 @@ if __name__ == '__main__':
         
     if True:
         m.initMPC()
+    if False:
         m.populateGuestDB()
 
 
     while True:
-        print("download mpcorb DAILY.DAT")
+        logger.info("download mpcorb DAILY.DAT")
         mpcdaily=m.downloadDAILYfile()
         if mpcdaily:
            m.updateMPC_DAILY(mpcdaily) 
            m.updateGuest_DAILY(mpcdaily)
-        print("download TLE..")
+        logger.info("download TLE..")
         s.downloadTLEfile()
-        print("wait for 8 hours")
+        logger.info("wait for 8 hours")
         time.sleep(8*3600)
 
 

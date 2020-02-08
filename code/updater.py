@@ -141,7 +141,7 @@ class propagateMPCorb:
         content_keys_list=np.asarray([x[:7] for x in content ])
         nrecords=len(content_keys_list)
         discover_date=ephem.date(0)
-        key=''
+        k=''
         for key in content_keys_list:
                 date_ = date_from_designation(key)
                 #logger.info date_
@@ -184,13 +184,13 @@ class propagateMPCorb:
             return
 
         if  os.path.isfile(mpcorb_to):
-            logger.info("File %s  exist. Skipping",mpcorb_to)
+            logger.info("File %s already exist. Skipping",mpcorb_to)
             continue
         
         #Check if lock
         lockfile=mpcorb_to+'.lock'
         if  os.path.isfile(lockfile):
-            logger.info("File ",mpcorb_to," is locked.")
+            logger.info("File %s is locked",mpcorb_to)
             return
 
         #lock while computing...
@@ -214,7 +214,7 @@ class propagateMPCorb:
         if  not os.path.isfile(mpcorb_to):
             self.timeShift(mpcorb_from,mpcorb_to,newdate)
         else:
-            logger.info("File ",mpcorb_to," exist. Continue")
+            logger.info("File %s already exist. Continue",mpcorb_to)
 
 
         try:

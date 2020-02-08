@@ -6,7 +6,7 @@ RUN python3 -m venv  --symlinks /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
 COPY requirements.txt /app/
-RUN pip3 install wheel 
+RUN pip3 install wheel && pip3 install --upgrade cython
 RUN pip3 install -r  /app/requirements.txt 
 COPY / /app
 WORKDIR /app

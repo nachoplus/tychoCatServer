@@ -1,6 +1,6 @@
-FROM bitnami/minideb:buster as builder
+FROM debian:buster as builder
 
-RUN install_packages gcc g++ make swig python3-dev python3-setuptools python3-pip cython wget pkg-config python3-venv
+RUN apt update && apt install -y --no-install-recommends gcc g++ make swig python3-dev python3-setuptools python3-pip cython wget pkg-config python3-venv  && apt clean && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv  --symlinks /app/venv
 ENV PATH="/app/venv/bin:$PATH"
@@ -13,11 +13,10 @@ WORKDIR /app
 RUN ["python3","code/bootstrap.py"]
 
 
-FROM bitnami/minideb:buster as runtime
-RUN install_packages python3-minimal libpython3.7 wget 
+FROM debian:buster as runtime
+RUN  apt update && apt install -y --no-install-recommends python3-minimal libpython3.7 wget && apt clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app /app
 WORKDIR /app
 ENV PATH="/app/venv/bin:$PATH"
-ENTRYPOINT ["python3"]
-CMD  ["code/tychoCatServer.py"]
+CMD  ["python3","code/tychoCatServer.py"]
 

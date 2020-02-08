@@ -18,7 +18,7 @@ services:
             dockerfile: docker/Dockerfile
             args:
                srcpath: code
-        command: code/downloader.py
+        command: python3 code/downloader.py
         volumes:
             - tycho-cat-server-data:/app/var
             - ../config:/app/config
@@ -31,7 +31,7 @@ services:
             dockerfile: docker/Dockerfile
             args:
                srcpath: code
-        command: code/updater.py
+        command: python3 code/updater.py
         volumes:
             - tycho-cat-server-data:/app/var
             - ../config:/app/config

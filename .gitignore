@@ -1,0 +1,11 @@
+env
+*.[oa]
+*~
+*.pyc
+.directory
+var
+TODO
+_ucac4.so
+integrat
+ucac4.py
+venv

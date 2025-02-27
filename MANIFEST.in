@@ -1,0 +1,3 @@
+include tychoCatServer/*.glu
+include tychoCatServer/favicon.ico
+include tychoCatServer/style.css

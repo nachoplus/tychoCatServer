@@ -1,0 +1,21 @@
+%ActionName        CatServer
+%Description       La Sagra Catalog Server
+%Aladin.Label      LaSagraCat
+%Aladin.Menu       .
+%Aladin.LabelPlane LSSS $5                      
+%Url               http://192.168.1.12:9000/$5?date=$4&ra=$1&dec=$2&r=$3&format=csv
+%Param.Description $1=Right Ascension
+%Param.Description $2=Declination
+%Param.Description $3=Radius
+%Param.Description $4=YYYY-MM-DD HH:MM:SS
+%Param.Description $5=Service
+%Param.DataType    $1=Target(RAd)
+%Param.DataType    $2=Target(DEd)
+%Param.DataType    $3=Field(RADIUSd)
+%Param.Value       $5=mpc
+%Param.Value       $5=sat
+%Param.Value       $5=ucac4
+%Aladin.filter     filter Mag.Circle { draw ${KEY}; draw circle(-${MAG}) }
+%Aladin.filter     filter Prop.motion { draw ${KEY}; draw pm(525.6*${SPEED}*sin(deg2rad(${PA})),525.6*${SPEED}*cos(deg2rad(${PA}))) }
+%Aladin.filter     filter Prop.motion.Sat { draw ${KEY}; draw pm(${SPEED}*sin(deg2rad(${PA}))/5,${SPEED}*cos(deg2rad(${PA}))/5) }
+%ResultDataType    Mime(text/csv)

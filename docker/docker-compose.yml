@@ -2,12 +2,12 @@ services:
     tycho-cat-server-runner:
         image: docker-tycho-cat-server
         container_name: tycho-cat-server
-        command: python3 code/tychoCatServer.py
+        command: python3 tychoCatServer/tychoCatServer.py
         build:
             context: ..
             dockerfile: docker/Dockerfile
             args:
-               srcpath: code        
+               srcpath: tychoCatServer        
         ports:
         - 9000:9000
         volumes:
@@ -20,12 +20,12 @@ services:
     tycho-cat-server:
         image: docker-tycho-cat-server
         container_name: tycho-downloader
-        command: python3 code/downloader.py
+        command: python3 tychoCatServer/downloader.py
         build:
             context: ..
             dockerfile: docker/Dockerfile
             args:
-               srcpath: code         
+               srcpath: tychoCatServer         
         volumes:
             - tycho-cat-server-data:/app/var
             - ../config:/app/config
@@ -34,12 +34,12 @@ services:
     tycho-cat-server-updater:
         image: docker-tycho-cat-server
         container_name: tycho-updater
-        command: python3 code/updater.py
+        command: python3 tychoCatServer/updater.py
         build:
             context: ..
             dockerfile: docker/Dockerfile
             args:
-               srcpath: code         
+               srcpath: tychoCatServer         
         volumes:
             - tycho-cat-server-data:/app/var
             - ../config:/app/config

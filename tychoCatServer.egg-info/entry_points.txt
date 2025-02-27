@@ -1,0 +1,2 @@
+[console_scripts]
+tychoCatServer = tychoCatServer.scripts.cli:tychoCatServer

@@ -2,14 +2,14 @@ __tychoCatServer__
 .. image:: https://travis-ci.org/nachoplus/tychoCatServer.svg
    :target: https://travis-ci.org/nachoplus/tychoCatServer
 
-========
+
 Introduction
-------------
-tychoCatServer is a http ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. tychoCatServer was development for LSSS (http://www.lasagraskysurvey.es/) NEO hutting project.
+============
+tychoCatServer is a ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. 
 
 At this time tychoCatServer provide ephemerids for:
-* satellites in NORAD database. (More than 15000 objects)
-* know asteroids in Minor Planet Center (MPC). (More than 650000 asteroids)
+* satellites in NORAD database. 
+* know asteroids in Minor Planet Center (MPC).
 * UCAC4 star catalog.(over 113 million objects)
 * Hipparcos 2 start catalog
 * NGC catalog
@@ -17,7 +17,25 @@ At this time tychoCatServer provide ephemerids for:
 * Planets and natural satellite (to be done)
 
 
-The output format will be html,csv,excel,fits or mpc 
+The output format will be html,csv,excel,fits,pickle,json or mpc 
+
+This software is heavily base on pyephem for calculations https://github.com/brandon-rhodes/pyephem . Also use a Bill Gray **integrat** from project pluto http://www.projectpluto.com/pluto/integrat.htm .
+
+Installation
+============
+Its recomended install under a python virtual enviroment to do not mesh the host's  python ecosystem.
+
+```console
+python3 -m venv venv
+source venv/bin/activate
+git clone https://github.com/nachoplus/tychoCatServer.git
+cd tychoCatServer
+(edit config/main.cfg to set your observatory code lat/lon and other details)
+pip install .
+```
+
+Asteroids
+=========
 
 Due to the large MPC asteroid database some speed up are needed. Basically a preliminar calculation is done for all the objects at daily basic. This results are used to prefilter asteroids in a given region and then precise position are calculated for them.
 
@@ -28,7 +46,7 @@ This cache mechanish has two modes of operation:
 2. MPCORB.DAT is only valid for a dates near (+-100days) its epoch. To overhelm this limitation the elements in MPCORB.DAT are propagated to diferents epoch using 'integrat', thus acurate calculation will be done. In this mode updateMPCORB.py script must be running all the time in order to update the database with new asteroids. This mode of operation is oriented to precoveries and general ephemerids server for far dates.(use_fix_mpcorb='False') 
 
 
-This software is heavily base on pyephem for calculations https://github.com/brandon-rhodes/pyephem . Also use a Bill Gray integrat from project pluto http://www.projectpluto.com/pluto/integrat.htm .
+
 
 __Installing__
 ----------

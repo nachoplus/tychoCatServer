@@ -21,8 +21,13 @@ def compile_and_install_software():
     """Used the subprocess module to compile/install the C software."""
     src_path = './ucac4.src/'
     print("Installing ucac4 swig rutines")
-    cmd='./mkswig.sh'
-    cmd += ' ../build/lib/tychoCatServer'
+    cmd='swig -python ucac4.i'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)    
+    cmd='gcc -c ucac4.c ucac4_wrap.c  -fPIC $(pkg-config --cflags python3) -fno-stack-protector'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='ld -shared ucac4.o ucac4_wrap.o -o _ucac4.so $(pkg-config --libs python3)'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='cp _ucac4.so  ucac4.py ../build/lib/tychoCatServer'
     subprocess.check_call(cmd, cwd=src_path, shell=True)
 
     #First pass
@@ -80,22 +85,17 @@ setup(
     install_requires=[
         'astropy~=7.0.1',
         'certifi~=2025.1.31',
-        'chardet~=5.2.0',
         'DateTime~=5.5',
         'ephem~=4.2',
-        'idna~=3.10',
         'numpy~=2.2.3',
         'pytz~=2025.1',
         'recordtype~=1.4',
         'regex~=2024.11.6',
         'requests~=2.32.3',
         'simplejson~=3.20.1',
-        'six~=1.17.0',
-        'swig~=4.3.0',
         'urllib3~=2.3.0',
         'urlparse2~=1.1.1',
         'XlsxWriter~=3.2.2',
-        'zope.interface~=7.2',
         'click~=8.1'
     ],
     extras_require={

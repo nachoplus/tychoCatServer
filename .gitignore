@@ -5,9 +5,10 @@ env
 .directory
 var
 TODO
-_ucac4.so
+ucac4.src/_ucac4.so
+ucac4.src/ucac4.py
+ucac4.src/ucac4_wrap.c
 integrat
-ucac4.py
 venv
 build
 tychoCatServer.egg-info

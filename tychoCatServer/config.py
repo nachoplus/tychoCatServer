@@ -16,13 +16,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 #General paths
 binpath=os.path.dirname(os.path.realpath(sys.argv[0]))
 pkgpath=os.path.dirname(__file__)
-#configpath=binpath+"/config"
-configpath="./config"
 
 
 #Read values from main.cfg
 config = configparser.ConfigParser()
-config.read(configpath+"/main.cfg")
+configs_files=[f'{x}/tychoCatServer.cfg' for x in ['.','$HOME/.config/tychoCatServer','./config']]
+config.read(configs_files)
 cfg_general=config._defaults
 
 def TodayDir():

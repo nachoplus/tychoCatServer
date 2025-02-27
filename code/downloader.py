@@ -83,16 +83,14 @@ def downloadMPCORBfile():
             logger.info("Renaming "+mpcorbfile+ " to "+datedmpcorbfile)
             res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
             logger.info(res)
-            logger.info("Creating symbolic link from "+getToday()+'.'+fileD+ " to "+ dir_dest+ "/FIX_MPCORB.DAT")
-            res=exe("ln -s -f "+getToday()+'.'+fileD+" "+ dir_dest+ "/FIX_MPCORB.DAT")
-            logger.info(res)
             logger.info("Cleaning FIX_guest_* cache files")
             res=exe("rm "+cfg["guestdbdir"]+"/FIX_guest_????-??-??.p")
             logger.info(res)                  
-
         else:
             logger.info("%s EXIST. Using" % datedmpcorbfile)
-
+        logger.info("Creating symbolic link from "+getToday()+'.'+fileD+ " to "+ dir_dest+ "/FIX_MPCORB.DAT")
+        res=exe("ln -s -f "+getToday()+'.'+fileD+" "+ dir_dest+ "/FIX_MPCORB.DAT")
+        logger.info(res)
 
 
 if __name__ == '__main__':

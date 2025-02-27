@@ -18,5 +18,5 @@ RUN  apt update && apt install -y --no-install-recommends python3-minimal libpyt
 COPY --from=builder /app /app
 WORKDIR /app
 ENV PATH="/app/venv/bin:$PATH"
-CMD  ["python3","code/tychoCatServer.py"]
+CMD  ["bash","code/tychoCatServer.py"]
 

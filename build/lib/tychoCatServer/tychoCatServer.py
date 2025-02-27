@@ -99,7 +99,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        with open(binpath+'/helptext.txt','r') as f:
+        with open(pkgpath+'/helptext.txt','r') as f:
             data=f.read()
         self.wfile.write(data.encode('ascii'))
 
@@ -107,7 +107,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "image/x-icon")
         self.end_headers()
-        with open(binpath+'/favicon.ico','rb') as f:
+        with open(pkgpath+'/favicon.ico','rb') as f:
             data=f.read()
         self.wfile.write(data)
 
@@ -210,7 +210,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def htmlOutput(self,data):
         out='<html>'
         out +='<head><style>'
-        css=open(binpath+"/style.css",'r')
+        css=open(f"{pkgpath}/style.css",'r')
         out +=css.read()
         out +='</style></head>'
         out +="<div class='lasagrastyle'><table>"

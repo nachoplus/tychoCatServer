@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 
 #General paths
 binpath=os.path.dirname(os.path.realpath(sys.argv[0]))
+pkgpath=os.path.dirname(__file__)
 #configpath=binpath+"/config"
 configpath="./config"
 

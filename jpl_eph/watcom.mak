@@ -34,7 +34,7 @@ testeph.exe:      testeph.obj wjpleph.lib
    wcl386 -zq -k20000 testeph.obj wjpleph.lib
 
 sub_eph.exe:      sub_eph.obj wjpleph.lib
-   wcl386 -zq -k20000 sub_eph.obj wjpleph.lib wafuncs.lib
+   wcl386 -zq -k20000 sub_eph.obj wjpleph.lib ../lib/wafuncs.lib
 
 asc2eph.exe:          asc2eph.obj f_strtod.obj
    wcl386 -zq -k20000 asc2eph.obj f_strtod.obj
@@ -45,7 +45,7 @@ merge_de.exe: merge_de.obj wjpleph.lib
 wjpleph.lib: jpleph.obj
    wlib -q wjpleph.lib +jpleph.obj
 
-CFLAGS=-W4 -Ox -j -4r -s -zq
+CFLAGS=-W4 -Ox -j -4r -s -zq -i=..\include
 
 .cpp.obj:
    wcc386 $(CFLAGS) $<

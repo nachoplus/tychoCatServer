@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "cgi_func.h"
 #include "watdefs.h"
 
@@ -42,7 +43,6 @@ different for each program;  at present,  you get the Find_Orb message.)
 #include <sys/time.h>         /* these allow resource limiting */
 #include <sys/resource.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <signal.h>
 
 static const char *email_address_mangled_for_no_spam =
@@ -154,6 +154,8 @@ int get_urlencoded_form_data( const char **idata,
    return( c != '&' && c > 13);
 }
 
+#define OVERRUN         -3
+
 int get_multipart_form_data( const char *boundary, char *field,
                 char *buff, char *filename, const size_t max_len)
 {
@@ -170,6 +172,8 @@ int get_multipart_form_data( const char *boundary, char *field,
       {
       char *filename_ptr = strstr( tptr, "filename=\"");
 
+      if( strlen( buff) == max_len - 1)
+         return( OVERRUN);
       *endptr = '\0';
       strcpy( field, tptr + 6);
       if( filename && filename_ptr
@@ -180,6 +184,8 @@ int get_multipart_form_data( const char *boundary, char *field,
          }
       if( fgets( buff, (int)max_len, stdin))
          {
+         if( strlen( buff) == max_len - 1)
+            return( OVERRUN);
          while( bytes_read < max_len - 1 &&
                  fgets( buff + bytes_read, (int)( max_len - bytes_read), stdin)
                  && memcmp( buff + bytes_read, boundary, blen))
@@ -271,7 +277,7 @@ int initialize_cgi_reading( void)
 int get_cgi_data( char *field, char *data, char *filename, const size_t max_data)
 {
    int rval;
-   const size_t max_field = 20;
+   const size_t max_field = 30;
 
    switch( method)
       {

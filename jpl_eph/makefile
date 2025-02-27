@@ -14,8 +14,13 @@
 #	'CLANG' = use clang instead of GCC;  Linux/BSD only
 # None of these: compile using g++ on Linux or BSD
 
-CFLAGS=-Wall -O3 -Wextra -pedantic -I $(INSTALL_DIR)/include
-CC=g++
+# As CC is an implicit variable, a simple CC?=g++ doesn't work.
+# We have to use this trick from https://stackoverflow.com/a/42958970
+ifeq ($(origin CC),default)
+	CC=gcc
+	CPP=g++
+endif
+CFLAGS+=-Wall -O3 -Wextra -Werror -pedantic -I $(INSTALL_DIR)/include $(ADDED_CFLAGS)
 RM=rm -f
 LIB=-lm
 
@@ -23,19 +28,25 @@ ifdef DEBUG
 	CFLAGS += -g
 endif
 
+ifdef UCHAR
+	CFLAGS += -funsigned-char
+endif
+
 # You can have your include files in ~/include and libraries in
 # ~/lib,  in which case only the current user can use them;  or
 # (with root privileges) you can install them to /usr/local/include
 # and /usr/local/lib for all to enjoy.
 
+PREFIX?=~
 ifdef GLOBAL
 	INSTALL_DIR=/usr/local
 else
-	INSTALL_DIR=~
+	INSTALL_DIR=$(PREFIX)
 endif
 
 ifdef CLANG
 	CC=clang
+	CPP=clang
 endif
 
 
@@ -53,18 +64,20 @@ endif
 LIB_DIR=$(INSTALL_DIR)/lib
 
 ifdef W64
-	CC=x86_64-w64-mingw32-g++
+	CC=x86_64-w64-mingw32-gcc
+	CPP=x86_64-w64-mingw32-g++
  LIB_DIR=$(INSTALL_DIR)/win_lib
 	EXE=.exe
 endif
 
 ifdef W32
-	CC=i686-w64-mingw32-g++
+	CC=i686-w64-mingw32-gcc
+	CPP=i686-w64-mingw32-g++
  LIB_DIR=$(INSTALL_DIR)/win_lib32
 	EXE=.exe
 endif
 
-all: asc2eph$(EXE) dump_eph$(EXE) eph2asc$(EXE) ftest$(EXE) merge_de$(EXE) testeph$(EXE)
+all: asc2eph$(EXE) dump_eph$(EXE) eph2$(EXE) eph2asc$(EXE) ftest$(EXE) masses$(EXE) merge_de$(EXE) testeph$(EXE)
 
 install:
 	$(MKDIR) $(INSTALL_DIR)/include
@@ -81,6 +94,9 @@ libjpl.a: jpleph.o
 	ar rv libjpl.a jpleph.o
 
 .cpp.o:
+	$(CPP) $(CFLAGS) -c $<
+
+.c.o:
 	$(CC) $(CFLAGS) -c $<
 
 asc2eph$(EXE):          asc2eph.o f_strtod.o
@@ -92,8 +108,14 @@ ftest$(EXE):          ftest.o f_strtod.o
 eph2asc$(EXE):          eph2asc.o libjpl.a
 	$(CC) -o eph2asc$(EXE) eph2asc.o libjpl.a $(LIB)
 
+eph2$(EXE):             eph2.o libjpl.a
+	$(CC) -o eph2$(EXE)    eph2.o libjpl.a $(LIB)
+
 dump_eph$(EXE):          dump_eph.o libjpl.a
 	$(CC) -o dump_eph$(EXE) dump_eph.o libjpl.a $(LIB)
+
+masses$(EXE):          masses.o libjpl.a
+	$(CC) -o masses$(EXE) masses.o libjpl.a $(LIB)
 
 merge_de$(EXE):          merge_de.o libjpl.a
 	$(CC) -o merge_de$(EXE) merge_de.o libjpl.a $(LIB)
@@ -102,7 +124,7 @@ sub_eph$(EXE):          sub_eph.o libjpl.a
 	$(CC) -o sub_eph$(EXE) sub_eph.o libjpl.a -L $(LIB_DIR) -llunar $(LIB)
 
 sub_eph.o: sub_eph.cpp
-	$(CC) $(CFLAGS) -c -DTEST_MAIN sub_eph.cpp
+	$(CPP) $(CFLAGS) -c -DTEST_MAIN sub_eph.cpp
 
 testeph$(EXE):          testeph.o libjpl.a
 	$(CC) -o testeph$(EXE) testeph.o libjpl.a $(LIB)
@@ -112,7 +134,9 @@ clean:
 	$(RM) asc2eph$(EXE)
 	$(RM) dump_eph$(EXE)
 	$(RM) eph2asc$(EXE)
+	$(RM) eph2$(EXE)
 	$(RM) ftest$(EXE)
+	$(RM) masses$(EXE)
 	$(RM) merge_de$(EXE)
 	$(RM) sub_eph$(EXE)
 	$(RM) testeph$(EXE)

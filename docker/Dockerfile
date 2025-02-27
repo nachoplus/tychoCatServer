@@ -7,10 +7,9 @@ ENV PATH="/app/venv/bin:$PATH"
 
 COPY requirements.txt /app/
 RUN pip3 install wheel && pip3 install --upgrade cython
-RUN pip3 install -r  /app/requirements.txt 
 COPY / /app
 WORKDIR /app
-RUN ["python3","code/bootstrap.py"]
+RUN cd /app && pip3 install .
 
 
 FROM debian:bookworm as runtime
@@ -18,5 +17,6 @@ RUN  apt update && apt install -y --no-install-recommends python3-minimal libpyt
 COPY --from=builder /app /app
 WORKDIR /app
 ENV PATH="/app/venv/bin:$PATH"
-CMD  ["bash","code/tychoCatServer.py"]
+ENTRYPOINT  ["tychoCatServer"]
+CMD ["bash"]
 

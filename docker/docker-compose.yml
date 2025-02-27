@@ -1,8 +1,8 @@
 services:
-    tycho-cat-server-runner:
-        image: docker-tycho-cat-server
+    cat-server-runner:
+        image: tycho-cat-server
         container_name: tycho-cat-server
-        command: python3 tychoCatServer/tychoCatServer.py
+        command: server
         build:
             context: ..
             dockerfile: docker/Dockerfile
@@ -13,37 +13,6 @@ services:
         volumes:
             - tycho-cat-server-data:/app/var
             - ../config:/app/config
-        profiles:
-            - default
-
-
-    tycho-cat-server:
-        image: docker-tycho-cat-server
-        container_name: tycho-downloader
-        command: python3 tychoCatServer/downloader.py
-        build:
-            context: ..
-            dockerfile: docker/Dockerfile
-            args:
-               srcpath: tychoCatServer         
-        volumes:
-            - tycho-cat-server-data:/app/var
-            - ../config:/app/config
-        profiles: [init]
-
-    tycho-cat-server-updater:
-        image: docker-tycho-cat-server
-        container_name: tycho-updater
-        command: python3 tychoCatServer/updater.py
-        build:
-            context: ..
-            dockerfile: docker/Dockerfile
-            args:
-               srcpath: tychoCatServer         
-        volumes:
-            - tycho-cat-server-data:/app/var
-            - ../config:/app/config
-        profiles: [updater]
 
 volumes:
         tycho-cat-server-data: {}

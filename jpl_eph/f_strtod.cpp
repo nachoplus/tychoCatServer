@@ -53,6 +53,10 @@ long double fast_strtold( const char *iptr, char **endptr);
 #define UINT64_MAX ((uint64_t)-1)
 #endif
 
+#if defined( __clang__) && defined( __APPLE__)
+#pragma GCC diagnostic ignored "-Wc++11-long-long"
+#endif     /* suppress nuisance warning on OS/X */
+
 inline long double ten_power( int exponent)
 {
    static const long double multipliers[16] = { 1.L, 10.L, 100.L, 1000.L,

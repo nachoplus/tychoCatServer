@@ -44,6 +44,7 @@ struct jpl_eph_data {
    double *cache;
    struct interpolation_info iinfo;
    FILE *ifile;
+   char name[32];       /* "DE430t", "INPOP-19c",  etc. */
    };
 
 /* 2014 Mar 25:  notes about the file structure :
@@ -93,11 +94,11 @@ Bytes 0- 83:  first line ("JPL Planetary Ephemeris DExxx/LExxx")
          ncoeff = 826 for DE-200 & 202
          ncoeff = 1018 for DE-403, 405, 410, 413, 414, 418, 421, 422,
                               423, 424, 430, 431, 433, 434, 435, 436,
-                              438
+                              438, 440, 441
          ncoeff = 728 for DE-404, 406
          ncoeff = 938 for DE-432
          ncoeff = 982 for DE-430t, 432t
-         ncoeff = 1122 for DE-436t
+         ncoeff = 1122 for DE-436t, 440t
          ncoeff = 1042 for DE-438t
 
 406 JD 625360.500 to 2816848.500 (years -2999.821 to 3000.146)
@@ -105,5 +106,6 @@ Bytes 0- 83:  first line ("JPL Planetary Ephemeris DExxx/LExxx")
 422 JD 625648.500 to 2816816.500 (years -2999.032 to 3000.059)
 430 JD 2287184.500 to 2688976.500 (years 1550.005 to 2650.052)
 431 JD -3027215.500 to 7930192.500 (years -13000.029 to 16999.719)
-432 and on : JD 2287184.500 to 2688976.500 (years 1550.005 to 2650.052)
+432-440t : JD 2287184.500 to 2688976.500 (years 1550.005 to 2650.052)
+441 JD -3100015.500 to 8000016.5 (years -13200 to 17191)
 */

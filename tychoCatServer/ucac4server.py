@@ -46,10 +46,10 @@ class ucac4server():
         h=r*2
         path=cfg['datadir']+'/u4b'
         filename=cfg['base_dir']+"/tmp.stars"
-        starsfile=ucac4.fopen(filename, 'wr')
+        starsfile=fopen(filename, 'wr')
         f=0
-        logger.info("retriving %s stars",ucac4.extract_ucac4_stars(starsfile,ra,dec,w,h,path,f))
-        ucac4.fclose(starsfile)
+        logger.info("retriving %s stars",extract_ucac4_stars(starsfile,ra,dec,w,h,path,f))
+        fclose(starsfile)
         with open(filename, 'r') as stars:
                 lines=[line.strip() for line in stars]
         os.remove(filename)

@@ -59,6 +59,8 @@ int DLL_FUNC calc_big_vsop_loc( FILE *ifile, const int planet,
 
 int DLL_FUNC lunar_fundamentals( const void FAR *data, const double t,
                                         double DLLPTR *fund);
+long double DLL_FUNC find_nearest_lunar_phase_time(
+                         const int phase_idx, const long double t2k);
 double DLL_FUNC mean_obliquity( const double t_cen);
 int DLL_FUNC calc_pluto_loc( const void FAR *data, double DLLPTR *loc,
                                 const double t, const long precision);
@@ -75,6 +77,8 @@ int DLL_FUNC compute_planet( const char FAR *vsop_data, const int planet_no,
             const double t_c, double DLLPTR *ovals);
 int DLL_FUNC calc_planet_orientation( const int planet_no, const int system_no,
                const double jd, double *matrix);
+int DLL_FUNC planet_radii( const int planet_no, double *radii_in_km);
+double DLL_FUNC planet_rotation_rate( const int planet_no, const int system_no);
 int DLL_FUNC load_cospar_file( const char *filename);
 int DLL_FUNC evaluate_rock( const double jd, const int jpl_id,
                                                   double *output_vect);

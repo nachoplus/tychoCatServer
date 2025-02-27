@@ -102,8 +102,6 @@ static double compute_posn_and_vel( const ELEMENTS *elem,
    return( true_r);
 }
 
-#define dot_prod( a, b) (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
-
 static double true_anomaly_to_eccentric( const double true_anom,
                                          const double ecc)
 {
@@ -189,7 +187,7 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
    fill_matrix( mat2, elem2);
    for( i = 0; i < 3; i++)
       for( j = 0; j < 3; j++)
-         idata.xform_matrix[i][j] = dot_prod( mat1[j], mat2[i]);
+         idata.xform_matrix[i][j] = dot_product( mat1[j], mat2[i]);
    idata.mdata = (mdata ? mdata : &mdata2);
    idata.compute_obj_1_data = false;
    idata.elem1_b = elem1->major_axis * elem1->minor_to_major;
@@ -212,8 +210,8 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
       ivect[0] = -idata.xform_matrix[2][1];   /* a vector perpendicular to zaxis, */
       ivect[1] =  idata.xform_matrix[2][0];    /* lying in the x/y plane */
       ivect[2] = 0.;
-      arg_per = -atan2( dot_prod( ivect, idata.xform_matrix[1]),
-                        dot_prod( ivect, idata.xform_matrix[0]));
+      arg_per = -atan2( dot_product( ivect, idata.xform_matrix[1]),
+                        dot_product( ivect, idata.xform_matrix[0]));
 //    printf( " Arg per %f\n", arg_per * 180. / PI);
       for( pass = 0; pass < 2; pass++)
          {                     /* check ascending & descending nodes */
@@ -266,24 +264,20 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
 
             brent_min_init( &b, x[0], y[0], x[1], y[1], x[2], y[2]);
             b.tolerance  = .000001 * PI / 180.;
+            b.ytolerance  = .0000001;
             while( b.step_type)
                {
                const double new_true = brent_min_next( &b);
-               const double dist_squared = find_point_moid_2( &idata, new_true);
 
-               assert( b.n_iterations < 30);
+               assert( b.n_iterations < 200);
+               dist_squared = find_point_moid_2( &idata, new_true);
                if( least_dist_squared > dist_squared)
                   {
                   min_true2 = new_true;
                   least_dist_squared = dist_squared;
                   }
-               brent_min_add( &b, dist_squared);
-//             printf( "%d Minimum bracketed %f to %f (%.8f):",
-//                         b.n_iterations - 3,
-//                         b.xmin * 180. / PI,
-//                         b.xmax * 180. / PI, (b.xmax - b.xmin) * 180. / PI);
-//             printf( "%f -> %.13f (%d)\n", new_true * 180. / PI, sqrt( dist_squared),
-//                            b.step_type);
+               if( b.step_type)
+                  brent_min_add( &b, dist_squared);
                }
             }
          }
@@ -305,10 +299,10 @@ double DLL_FUNC find_moid_full( const ELEMENTS *elem1, const ELEMENTS *elem2, mo
 //                                  vel2[2] * AU_IN_KM / seconds_per_day);
    for( i = 0; i < 3; i++)
       vdiff[i] = vel2[i] - vel1[i];
-   mdata->barbee_speed = vector3_length( vdiff);
-   ecc_anom = true_anomaly_to_eccentric( mdata->obj1_true_anom, idata.elem1->ecc);
+   idata.mdata->barbee_speed = vector3_length( vdiff);
+   ecc_anom = true_anomaly_to_eccentric( idata.mdata->obj1_true_anom, idata.elem1->ecc);
    mean_anom = ecc_anom - idata.elem1->ecc * sin( ecc_anom);
-   mdata->jd1 = idata.elem1->perih_time + mean_anom * idata.elem1->t0;
+   idata.mdata->jd1 = idata.elem1->perih_time + mean_anom * idata.elem1->t0;
    }
 
    return( sqrt( least_dist_squared));
@@ -373,7 +367,7 @@ static const double planet_elem_rate[N_PLANET_RATES * 6] = {
    double elem_array[6];
    int i;
 
-   if( planet_idx >= N_PLANET_ELEMS || planet_idx < 0)
+   if( planet_idx > N_PLANET_ELEMS || planet_idx < 1)
       return( -1);
    for( i = 0; i < 6; i++)
       {

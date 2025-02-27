@@ -60,6 +60,7 @@ long DLL_FUNC jpl_get_long( const void *ephem, const int value);
 int DLL_FUNC make_sub_ephem( void *ephem, const char *sub_filename,
                               const double start_jd, const double end_jd);
 double DLL_FUNC jpl_get_constant( const int idx, void *ephem, char *constant_name);
+const char * DLL_FUNC jpl_get_ephem_name( const void *ephem);
 
          /* Following are constants used in          */
          /* jpl_get_double( ) and jpl_get_long( ):   */

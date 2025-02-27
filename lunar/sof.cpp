@@ -27,8 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "comets.h"
 #include "date.h"
 
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
-
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
 
@@ -42,6 +40,10 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 #define SOF_ARG_PERIH_FOUND         0x0080
 #define SOF_ABS_MAG_FOUND           0x0100
 #define SOF_SLOPE_PARAM_FOUND       0x0200
+#define SOF_TWRITTEN_FOUND          0x0400
+#define SOF_TFIRST_FOUND            0x0800
+#define SOF_TLAST_FOUND             0x1000
+#define SOF_MAX_RESID_FOUND         0x2000
 
    /* If you don't have these fields,  you don't have a defined orbit. */
 #define MIN_FIELDS_NEEDED (SOF_Q_FOUND | SOF_ECC_FOUND | SOF_TPERIH_FOUND \
@@ -49,7 +51,7 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header);
 
 /* All dates are currently stored as YYYYMMDD[.dddd],  Gregorian. */
 
-static double extract_jd( const char *buff)
+double extract_yyyymmdd_to_jd( const char *buff)
 {
    long t;
    int bytes_read;
@@ -67,8 +69,11 @@ static double extract_jd( const char *buff)
 }
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209749445923
+#define MASS_EARTH    3.003489614792921e-06
+         /* above is in solar masses,  from DE-432 */
 
-int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
+int extract_sof_data_ex( ELEMENTS *elem, const char *buff, const char *header,
+                        double *extra_info)
 {
    int fields_found = 0, rval;
 
@@ -77,83 +82,104 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
    memset( elem, 0, sizeof( ELEMENTS));
    elem->slope_param = 0.15;
    elem->gm = SOLAR_GM;
+   if( extra_info)
+      for( size_t i = 0; i < 4; i++)
+         extra_info[i] = 0.;
    while( *header >= ' ')
       {
       size_t i = 0;
+      char tbuff[80];
 
       while( header[i] >= ' ' && header[i] != '|')
          i++;
-      if( i < 2)
+      if( i < 2 || i >= sizeof( tbuff))
          return( -1);
+      memcpy( tbuff, buff, i);
+      tbuff[i] = '\0';
       if( header[1] == ' ')
          {
          switch( header[0])
             {
             case 'q':
-               elem->q = atof( buff);
+               elem->q = atof( tbuff);
                fields_found |= SOF_Q_FOUND;
                break;
             case 'e':
-               elem->ecc = atof( buff);
+               elem->ecc = atof( tbuff);
                fields_found |= SOF_ECC_FOUND;
                break;
             case 'i':
-               elem->incl = atof( buff) * PI / 180.;
+               elem->incl = atof( tbuff) * PI / 180.;
                fields_found |= SOF_INCL_FOUND;
                break;
             case 'O':
-               elem->asc_node = atof( buff) * PI / 180.;
+               elem->asc_node = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ASC_NODE_FOUND;
                break;
             case 'o':
-               elem->arg_per = atof( buff) * PI / 180.;
+               elem->arg_per = atof( tbuff) * PI / 180.;
                fields_found |= SOF_ARG_PERIH_FOUND;
                break;
             case 'H':
-               elem->abs_mag = atof( buff);
+               elem->abs_mag = atof( tbuff);
                fields_found |= SOF_ABS_MAG_FOUND;
                break;
             case 'G':
-               elem->slope_param = atof( buff);
+               elem->slope_param = atof( tbuff);
                fields_found |= SOF_SLOPE_PARAM_FOUND;
                break;
             case 'C':
-               elem->central_obj = atoi( buff);
+               elem->central_obj = atoi( tbuff);
+               if( 3 == elem->central_obj)
+                  elem->gm *= MASS_EARTH;
                break;
             }
          }
-      else if( header[2] == ' ')
+      else switch( header[0])
          {
-         switch( header[0])
+         case 'T':
             {
-            case 'T':
+            const double jd = extract_yyyymmdd_to_jd( tbuff);
+
+            if( header[1] == 'p')
                {
-               const double jd = extract_jd( buff);
-
-               if( header[1] == 'p')
-                  {
-                  elem->perih_time = jd;
-                  fields_found |= SOF_TPERIH_FOUND;
-                  }
-               else if( header[1] == 'e')
-                  {
-                  elem->epoch = jd;
-                  fields_found |= SOF_TEPOCH_FOUND;
-                  }
-               fields_found |= SOF_Q_FOUND;
+               elem->perih_time = jd;
+               fields_found |= SOF_TPERIH_FOUND;
                }
-               break;
-            case 'O':
-               elem->asc_node = atof( buff) * PI / 180.;
-               fields_found |= SOF_ASC_NODE_FOUND;
-               break;
-            case 'o':
-               elem->arg_per = atof( buff) * PI / 180.;
-               fields_found |= SOF_ARG_PERIH_FOUND;
-               break;
+            else if( header[1] == 'e')
+               {
+               elem->epoch = jd;
+               fields_found |= SOF_TEPOCH_FOUND;
+               }
+            else if( extra_info)
+               switch( header[1])
+                  {
+                  case 'w':
+                     extra_info[2] = jd;
+                     fields_found |= SOF_TWRITTEN_FOUND;
+                     break;
+                  case 'f':
+                     extra_info[0] = jd;
+                     fields_found |= SOF_TFIRST_FOUND;
+                     break;
+                  case 'l':
+                     extra_info[1] = jd;
+                     fields_found |= SOF_TLAST_FOUND;
+                     break;
+                  }
             }
-
+            break;
+         case 'O':
+            elem->asc_node = atof( tbuff) * PI / 180.;
+            fields_found |= SOF_ASC_NODE_FOUND;
+            break;
+         case 'o':
+            elem->arg_per = atof( tbuff) * PI / 180.;
+            fields_found |= SOF_ARG_PERIH_FOUND;
+            break;
          }
+      if( !memcmp( header, "rms", 3) && extra_info)
+         extra_info[3] = atof( tbuff);
       if( header[i] == '|')
          i++;
       header += i;
@@ -170,6 +196,11 @@ int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
       rval = -1;
       }
    return( rval);
+}
+
+int extract_sof_data( ELEMENTS *elem, const char *buff, const char *header)
+{
+   return( extract_sof_data_ex( elem, buff, header, NULL));
 }
 
 #ifdef TEST_CODE

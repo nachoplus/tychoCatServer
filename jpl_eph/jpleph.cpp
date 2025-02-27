@@ -62,17 +62,19 @@ details of the implementation encapsulated.
 
 /**** include variable and type definitions, specific for this C version */
 
-#if defined( __has_include)
-   #if !__has_include(<get_bin.h>)
-      #error   \
-        'get_bin.h' not found.  This project depends on the 'lunar'\
-        library.  See www.github.com/Bill-Gray/lunar .\
-        Clone that repository,  'make'  and 'make install' it.
-           /* Just to make the error message cleaner,  we'll suppress */
-           /* some  warnings that cascade from lack of get_bin.h. */
-      #define get32bits(d)  0
-      #define get_double( iptr) 0.
-   #endif
+#if !defined( __has_include)
+   #define __has_include(X) (1)
+#endif
+
+#if !(__has_include("get_bin.h"))
+   #error   \
+     'get_bin.h' not found.  This project depends on the 'lunar'\
+     library.  See www.github.com/Bill-Gray/lunar .\
+     Clone that repository,  'make'  and 'make install' it.
+        /* Just to make the error message cleaner,  we'll suppress */
+        /* some  warnings that cascade from lack of get_bin.h. */
+   #define get32bits(d)  0
+   #define get_double( iptr) 0.
 #endif
 
 #include "get_bin.h"
@@ -810,7 +812,18 @@ void * DLL_FUNC jpl_init_ephemeris( const char *ephemeris_filename,
       return( NULL);
       }
 
-   de_version = atoi( title + 26);
+   if( !memcmp( title, "INPOP", 5))
+      {
+      de_version = atoi( title + 5);
+      title[30] = '\0';
+      sscanf( title, "%s", temp_data.name);
+      }
+   else
+      {
+      de_version = atoi( title + 26);
+      title[54] = '\0';
+      sscanf( title + 24, "%s", temp_data.name);
+      }
 
           /* A small piece of trickery:  in the binary file,  data is stored */
           /* for ipt[0...11],  then the ephemeris version,  then the         */
@@ -1003,5 +1016,13 @@ double DLL_FUNC jpl_get_constant( const int idx, void *ephem, char *constant_nam
          }
       }
    return( rval);
+}
+
+
+const char * DLL_FUNC jpl_get_ephem_name( const void *ephem)
+{
+   struct jpl_eph_data *eph = (struct jpl_eph_data *)ephem;
+
+   return( eph->name);
 }
 /*************************** THE END ***************************************/

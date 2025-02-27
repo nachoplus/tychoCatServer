@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define MIN_THRESH 1.e-14
 #define CUBE_ROOT( X)  (exp( log( X) / 3.))
 
-static double kepler( const double ecc, double mean_anom);
+double kepler( const double ecc, double mean_anom);
 void setup_orbit_vectors( ELEMENTS DLLPTR *e);  /* astfuncs.cpp */
 void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
                                     double DLLPTR *loc, double DLLPTR *vel);
@@ -187,7 +187,7 @@ go into excruciating detail as to how it's done below. */
 
 #define MAX_ITERATIONS 7
 
-static double kepler( const double ecc, double mean_anom)
+double kepler( const double ecc, double mean_anom)
 {
    double curr, err, thresh, offset = 0.;
    double delta_curr = 1.;
@@ -311,10 +311,13 @@ void comet_posn_part_ii( const ELEMENTS DLLPTR *elem, const double t,
    r = r0 / (1. + elem->ecc * cos( true_anom));
    x = r * cos( true_anom);
    y = r * sin( true_anom);
-   loc[0] = elem->perih_vec[0] * x + elem->sideways[0] * y;
-   loc[1] = elem->perih_vec[1] * x + elem->sideways[1] * y;
-   loc[2] = elem->perih_vec[2] * x + elem->sideways[2] * y;
-   loc[3] = r;
+   if( loc)
+      {
+      loc[0] = elem->perih_vec[0] * x + elem->sideways[0] * y;
+      loc[1] = elem->perih_vec[1] * x + elem->sideways[1] * y;
+      loc[2] = elem->perih_vec[2] * x + elem->sideways[2] * y;
+      loc[3] = r;
+      }
    if( vel && (elem->angular_momentum != 0.))
       {
       double angular_component = elem->angular_momentum / (r * r);
@@ -351,4 +354,15 @@ int DLL_FUNC comet_posn_and_vel( ELEMENTS DLLPTR *elem, double t,
 int DLL_FUNC comet_posn( ELEMENTS DLLPTR *elem, double t, double DLLPTR *loc)
 {
    return( comet_posn_and_vel( elem, t, loc, NULL));
+}
+
+double DLL_FUNC phase_angle_correction_to_magnitude( const double phase_angle,
+                                 const double slope_param)
+{
+      const double epsilon = 1e-10;
+      const double log_tan_half_phase = log( tan( phase_angle / 2.) + epsilon);
+      const double phi1 = exp( -3.33 * exp( log_tan_half_phase * 0.63));
+      const double phi2 = exp( -1.87 * exp( log_tan_half_phase * 1.22));
+
+      return( -2.5 * log10( (1. - slope_param) * phi1 + slope_param * phi2));
 }

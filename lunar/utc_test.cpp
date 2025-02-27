@@ -15,38 +15,34 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
-/* These macros determine the MJD of the given date in 'YEAR'.         */
-/* They're valid for _non-negative_ years in the _Gregorian_ calendar. */
-/* Some are not used here,  and therefore commented out,  just to      */
-/* avoid compiler warnings.                                            */
-
-#define JAN_1( YEAR) (((YEAR) * 365 + ((YEAR) - 1) / 4 - ((YEAR) - 1) / 100 \
-                         + ((YEAR) - 1) / 400) - 678940)
-// #define FEB_1( YEAR) (JAN_1( YEAR) + 31)
-#define MAR_1( YEAR) (((YEAR)*365 + (YEAR)/4 - (YEAR)/100 + (YEAR)/400) - 678881)
-#define APR_1( YEAR) (MAR_1( YEAR) + 31)
-#define MAY_1( YEAR) (APR_1( YEAR) + 30)
-#define JUN_1( YEAR) (MAY_1( YEAR) + 31)
-#define JUL_1( YEAR) (JUN_1( YEAR) + 30)
-// #define AUG_1( YEAR) (JUL_1( YEAR) + 31)
-// #define SEP_1( YEAR) (AUG_1( YEAR) + 31)
-// #define OCT_1( YEAR) (SEP_1( YEAR) + 30)
-// #define NOV_1( YEAR) (OCT_1( YEAR) + 31)
-// #define DEC_1( YEAR) (NOV_1( YEAR) + 30)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "watdefs.h"
 #include "afuncs.h"
+#include "mjd_defs.h"
 
 int main( const int argc, const char **argv)
 {
-   int year = (argc > 1 ? atoi( argv[1]) : 1970);
-   const int end_year = (argc > 2 ? atoi( argv[2]) : 2040);
+   int year = 1970, end_year = 2040, i;
    unsigned count = 0;
 
+   for( i = 1; i < argc; i++)
+      if( argv[i][0] == '-')
+         switch( argv[i][1])
+            {
+            case 'p':
+               mjd_end_of_predictive_leap_seconds = atoi( argv[i] + 2);
+               printf( "No predicted leap seconds after MJD %d\n",
+                           mjd_end_of_predictive_leap_seconds);
+               break;
+            default:
+               printf( "Option '%s' ignored\n", argv[i]);
+               break;
+            }
+      else
+         sscanf( argv[i], "%d,%d", &year, &end_year);
    printf( "Leap seconds for years %d to %d\n", year, end_year);
-   printf( "(See the 'official' list at http://maia.usno.navy.mil/ser7/tai-utc.dat)\n");
+   printf( "(See the 'official' list at https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history)\n");
    printf( "Future leap seconds are predicted using the method described\n");
    printf( "in 'delta_t.cpp',  and come without warranty of any kind.\n");
    for( ; year <= end_year; year++)

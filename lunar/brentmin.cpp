@@ -33,7 +33,6 @@ static void bubble_down( brent_min_t *b, int count)
 #define STEP_TYPE_DONE        0
 #define STEP_TYPE_GOLDEN      1
 #define STEP_TYPE_CUBIC       2
-#define STEP_TYPE_SHRINK      3
 #define STEP_TYPE_QUADRATIC   4
 
 void brent_min_init( brent_min_t *b, const double x1, const double y1,
@@ -57,16 +56,14 @@ void brent_min_init( brent_min_t *b, const double x1, const double y1,
       b->xmax = x3;
    bubble_down( b, 2);     /* full bubble sort of three items */
    bubble_down( b, 2);
+   assert( b->x[0] > b->xmin);
+   assert( b->x[0] < b->xmax);
    b->gold_ratio = PHI;
    b->n_iterations = 0;
    b->prev_range = b->prev_range2 = 0.;
-   b->tolerance = 0.;
+   b->tolerance = b->ytolerance = 0.;
    b->step_type = STEP_TYPE_INITIALIZED;
 }
-
-#if defined( _MSC_VER) && (_MSC_VER < 1800)
-   #define NAN  sqrt(-1.)
-#endif
 
 /* Fits a parabola y = ax^2 + bx + c to x[0, 1, 2] and y[0, 1, 2],  and
 returns a,  which is always computed.  If b is non-NULL,  it's computed.
@@ -78,27 +75,16 @@ it's not static to this file). */
 double fit_parabola( const double *x, const double *y, double *b, double *c)
 {
    const double x21 = x[2] - x[1], x01 = x[0] - x[1], x20 = x[2] - x[0];
+   const double y21 = y[2] - y[1], y01 = y[0] - y[1];
    double a;
 
-   if( !x21 || !x20 || !x01)
+   assert( x21 && x20 && x01);
+   a = (y21 / x21 - y01 / x01) / x20;
+   if( b)
       {
-      a = NAN;
-      if( b)
-         *b = NAN;
+      *b = y01 / x01 - a * (x[1] + x[0]);
       if( c)
-         *c = NAN;
-      }
-   else
-      {
-      const double y21 = y[2] - y[1], y01 = y[0] - y[1];
-
-      a = (y21 / x21 - y01 / x01) / x20;
-      if( b)
-         {
-         *b = y01 / x01 - a * (x[1] + x[0]);
-         if( c)
-            *c = y[0] - x[0] * (*b + a * x[0]);
-         }
+         *c = y[0] - x[0] * (*b + a * x[0]);
       }
    return( a);
 }
@@ -128,9 +114,12 @@ k13 = (y1 * x3 - y3 * x1) / (x1 * x3 * (x1 - x3)) = a * (x1 + x3) + b
    The slope of y (remember,  we're after the minimum of the cubic here)
 is dy/xy = 3ax^2 + 2bx + c,  and we're looking for zeroes of that.  Triple
 a and double b,  and the quadratic we need to solve is plain ol ax^2+bx+c.
-*/
 
-static double cubic_min( const double *x, const double *y)
+   There will actually be zero or two minima.  In the first case,  the
+cubic is monotonic and we fail safely.  In the second,  we take the
+minimum with smallest absolute value (i.e.,  closest to x0.)  */
+
+static double cubic_min( const double *x, const double *y, int *err)
 {
    const double x1 = x[1] - x[0], x2 = x[2] - x[0], x3 = x[3] - x[0];
    const double y1 = y[1] - y[0], y2 = y[2] - y[0], y3 = y[3] - y[0];
@@ -138,8 +127,8 @@ static double cubic_min( const double *x, const double *y)
    const double k13_denom = x1 * x3 * (x1 - x3);
    double k12, k13, a, b, c, discr, rval;
 
-   if( !k12_denom || !k13_denom || x2 == x3)
-      return( NAN);              /* two or more x values are equal */
+   *err = 0;
+   assert( k12_denom && k13_denom && x2 != x3);
    k12 = (y1 * x2 - y2 * x1) / k12_denom;
    k13 = (y1 * x3 - y3 * x1) / k13_denom;
    a = (k12 - k13) / (x2 - x3);
@@ -148,66 +137,46 @@ static double cubic_min( const double *x, const double *y)
    a *= 3.;
    b += b;
    discr = b * b - 4. * a * c;
-   if( discr < 0.)
-      return( NAN);     /* cubic is monotonically increasing or decreasing */
+   if( discr < 0.)      /* cubic is monotonically increasing or decreasing */
+      {
+      *err = 1;
+      return( 0);
+      }
    discr = sqrt( discr);
-   if( b < 0.)             /* pick smallest root */
-      rval = -b - discr;
+   if( b < 0.)                   /* quadratic formula rearranged */
+      rval = -b + discr;         /* slightly to reduce loss of precision */
    else
-      rval = -b + discr;
-   return( x[0] + 0.5 * rval / a);
+      rval = -b - discr;
+   return( x[0] + 2. * c / rval);
 }
 
 static int is_done( const brent_min_t *b)
 {
-   return( b->xmax - b->xmin <= b->tolerance);
+   if( b->n_iterations > 3 && b->y[3] - b->y[0] <= b->ytolerance)
+      return( 1);
+   return( b->xmax - b->x[0] < b->tolerance && b->x[0] - b->xmin < b->tolerance);
 }
 
 double brent_min_next( brent_min_t *b)
 {
    double rval;
    const double right = b->xmax - b->x[0], left = b->x[0] - b->xmin;
-   const double ratio = right / left;
    const double range = b->xmax - b->xmin;
 
+   assert( right);
+   assert( left);
    if( is_done( b))
       {
       b->step_type = STEP_TYPE_DONE;
       return( b->x[0]);
       }
    b->step_type = STEP_TYPE_GOLDEN;
-   if( ratio > 10. || ratio < 0.1)  /* lopsided */
+   if( b->n_iterations)
       {
-      rval = b->x[0] + (ratio > 1. ? left : -right) * 3.;
-      b->step_type = STEP_TYPE_SHRINK;
-      }
-   else if( b->n_iterations)
-      {
-      rval = cubic_min( b->x, b->y);
-#ifdef NOT_WORKING_CORRECTLY
-         /* Tried comparing quadratic & cubic results,  thinking */
-         /* the difference could give an error estimate.  Not a bad */
-         /* idea,  but doesn't currently seem to help.   */
-                     {
-                     double quad, linear, qval;
-                     double diff;
+      int err;
 
-                     quad = fit_parabola( b->x, b->y, &linear, NULL);
-                     qval = -linear * .5 / quad;
-                     diff = fabs( qval - rval);
-                     printf( "\nquad %.15f, cubic %.15f, diff %.15f\n",
-                            qval, rval, diff);
-                     if( rval < b->x[0])
-                        {
-                        if( rval > (b->x[0] + b->xmin) * .5)
-                           diff = -diff;
-                        }
-                     else if( rval > (b->x[0] + b->xmax) * .5)
-                        diff = -diff;
-//                   rval += diff;
-                     }
-#endif
-      if( rval > b->xmin && rval < b->xmax)
+      rval = cubic_min( b->x, b->y, &err);
+      if( !err)
          b->step_type = STEP_TYPE_CUBIC;
       }
    else     /* with only three points,  we'll try a quadratic step */
@@ -216,28 +185,50 @@ double brent_min_next( brent_min_t *b)
 
       quad = fit_parabola( b->x, b->y, &linear, NULL);
       rval = -linear * .5 / quad;
-      if( rval > b->xmin && rval < b->xmax)
-         b->step_type = STEP_TYPE_QUADRATIC;
+      b->step_type = STEP_TYPE_QUADRATIC;
       }
    b->prev_range2 = b->prev_range;
    b->prev_range = range;
-               /* If the proposed step goes outside the brackets,
-                  fall back on the golden section search : */
-   if( rval <= b->xmin || rval >= b->xmax)
-      b->step_type = STEP_TYPE_GOLDEN;
+         /* Unless it's a golden section step,  make sure we're at least
+          b->tolerance away from x[0],  xmin,  and ymin.  (With a GS step,
+          we'll be safe anyway.)  */
+   if( b->step_type != STEP_TYPE_GOLDEN)
+      {
+      const double tol = b->tolerance * .9;
+
+      if( rval > b->x[0] - tol && rval < b->x[0] + tol)
+         rval = b->x[0] + (right > left ? tol : -tol);
+      else if( rval < b->x[0])
+         {
+         if( rval < b->xmin)
+            b->step_type = STEP_TYPE_GOLDEN;
+         else if( rval < b->xmin + tol)
+            rval = b->xmin + tol;
+         }
+      else           /* mirror image of preceding section */
+         {
+         if( rval > b->xmax)
+            b->step_type = STEP_TYPE_GOLDEN;
+         else if( rval > b->xmax - tol)
+            rval = b->xmax - tol;
+         }
+      if( b->n_iterations > 30 && (b->n_iterations & 1))
+         b->step_type = STEP_TYPE_GOLDEN;
+      }
    if( b->step_type == STEP_TYPE_GOLDEN)
       rval = b->x[0] + (right > left ? right : -left) * (1. - b->gold_ratio);
    assert( rval >= b->xmin);
    assert( rval <= b->xmax);
+   assert( rval != b->x[0]);
    b->next_x = rval;
    return( rval);
 }
 
 int brent_min_add( brent_min_t *b, const double next_y)
 {
-   const int idx = (b->n_iterations ? 4 : 3);
+   int idx = (b->n_iterations ? 4 : 3);
 
-   if( next_y < b->y[0])      /* we have a new minimum */
+   if( next_y <= b->y[0])      /* we have a new minimum */
       {
       if( b->next_x < b->x[0])
          b->xmax = b->x[0];
@@ -256,8 +247,18 @@ int brent_min_add( brent_min_t *b, const double next_y)
          b->gold_ratio = (PHI + b->gold_ratio) / 2.;
       }
    b->n_iterations++;
+   while( idx && next_y <= b->y[idx - 1])
+      {
+      b->x[idx] = b->x[idx - 1];
+      b->y[idx] = b->y[idx - 1];
+      idx--;
+      }
    b->x[idx] = b->next_x;
    b->y[idx] =    next_y;
-   bubble_down( b, idx);
+   assert( b->y[0] <= b->y[1]);
+   assert( b->y[1] <= b->y[2]);
+   assert( b->y[2] <= b->y[3]);
+   assert( b->x[0] > b->xmin);
+   assert( b->x[0] < b->xmax);
    return( is_done( b));
 }

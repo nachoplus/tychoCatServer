@@ -22,6 +22,7 @@ directory as well.  */
 #include "watdefs.h"
 #include "date.h"
 #include "comets.h"
+#include "stringex.h"
 
 long extract_mpcorb_dat( ELEMENTS *elem, const char *buff);
 
@@ -29,6 +30,8 @@ const double PI =
    3.1415926535897932384626433832795028841971693993751058209749445923;
 #define GAUSS_K .01720209895
 #define SOLAR_GM (GAUSS_K * GAUSS_K)
+
+#define IS_POWER_OF_TWO( n)    (((n) & ((n)-1)) == 0)
 
 static int parse_elements_dot_comet( ELEMENTS *elem, const char *buff)
 {
@@ -77,10 +80,11 @@ static void extract_name( char *name, const char *iline)
 const char *sof_header =
        "Name        |Tp      .       |Te      |q          |"
        "i  .      |Om .      |om .      |e         |"
-       "rms |n_o  |Tlast   |H .  |G . ^\n";
+       "rms |n_o  |Tfirst  |Tlast   |Perts  |H .  |G . ^\n";
 
 static void output_sof( const ELEMENTS *elem, char *obuff)
 {
+   const size_t obuff_size = 90;
    char perih_time[20], epoch_time[20];
    const int base_time_format = FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
                 | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_FORMAT_DAY
@@ -89,8 +93,8 @@ static void output_sof( const ELEMENTS *elem, char *obuff)
    full_ctime( perih_time, elem->perih_time, base_time_format |
                                  FULL_CTIME_7_PLACES);
    full_ctime( epoch_time, elem->epoch, base_time_format);
-   sprintf( obuff, "%s %s %11.8f ", perih_time, epoch_time, elem->q);
-   snprintf( obuff + strlen( obuff), 45, "%10.6f %10.6f %10.6f %10.8f ",
+   snprintf_err( obuff, obuff_size, "%s %s %11.8f ", perih_time, epoch_time, elem->q);
+   snprintf_append( obuff, obuff_size, "%10.6f %10.6f %10.6f %10.8f ",
                   elem->incl * 180. / PI,  elem->asc_node * 180. / PI,
                   elem->arg_per * 180. / PI, elem->ecc);
 }
@@ -103,97 +107,26 @@ static FILE *err_fopen( const char *filename, const char *permits)
       {
       fprintf( stderr, "Failed to open '%s'", filename);
       perror( " ");
+      fprintf( stderr, "Comments at the top of 'mpc2sof.cpp' should tell you\n"
+                       "where to find this file.\n");
       exit( -1);
       }
    return( rval);
 }
 
-#define DESIG_NUMBERED          0
-#define DESIG_PROVISIONAL       1
-#define DESIG_PLS_OR_TS         2
-#define DESIG_NUMBERED_COMET    3
-#define DESIG_PROVISIONAL_COMET 4
-#define DESIG_UNRECOGNIZED     -1
-
-static int desig_type( const char *buff)
-{
-   int rval = DESIG_UNRECOGNIZED;
-
-   if( buff[0] == ' ' && buff[1] == ' '
-               && buff[2] == ' ')
-      rval = DESIG_NUMBERED;
-   else if( buff[6] == '-' && (buff[5] == 'P' || buff[5] == 'T'))
-      rval = DESIG_PLS_OR_TS;
-   else if( buff[1] == '/')
-      rval = DESIG_PROVISIONAL_COMET;
-   else if( buff[3] == 'P' || buff[3] == 'D')
-      rval = DESIG_NUMBERED_COMET;
-   else if( buff[4] == ' ')
-      if( buff[0] == '1' || buff[0] == '2')
-         rval = DESIG_PROVISIONAL;
-   return( rval);
-}
-
-int qsort_compare( const void *a, const void *b)
-{
-   const char *astr = (const char *)a;
-   const char *bstr = (const char *)b;
-   const int type1 = desig_type( astr);
-   const int type2 = desig_type( bstr);
-   int rval = type1 - type2;
-
-   if( !rval)
-      switch( type1)
-         {
-         case DESIG_NUMBERED:
-         case DESIG_NUMBERED_COMET:
-            break;
-         case DESIG_PROVISIONAL:
-            rval = memcmp( astr, bstr, 6);
-            if( !rval)
-               {
-               const int na = (astr[7] == ' ' ? 0 : atoi( astr + 7));
-               const int nb = (bstr[7] == ' ' ? 0 : atoi( bstr + 7));
-
-               rval = na - nb;
-               }
-            if( !rval)
-               rval = astr[6] - bstr[6];
-            break;
-         case DESIG_PLS_OR_TS:
-            rval = memcmp( astr + 6, bstr + 6, 3);
-            break;
-         case DESIG_PROVISIONAL_COMET:
-            rval = atoi( astr + 2) - atoi( bstr + 2);
-            if( !rval)
-               rval = memcmp( astr + 2, bstr + 2, 6);
-            if( !rval)
-               if( astr[11] < 'A' && bstr[11] < 'A')
-                  rval = atoi( astr + 11) - atoi( bstr + 11);
-            break;
-         case DESIG_UNRECOGNIZED:
-            rval = memcmp( astr, bstr, 12);
-            break;
-         }
-   if( !rval)
-      rval = strcmp( astr, bstr);
-   return( rval);
-}
-
-#define MAX_ORBITS 1000000
 #define MAX_OUT 200
 
 int main( const int argc, const char **argv)
 {
    const size_t reclen = strlen( sof_header);
-   char buff[400], *obuff = (char *)calloc( MAX_ORBITS, reclen);
+   char buff[400], *obuff = NULL;
    char tbuff[MAX_OUT];
    FILE *ifile = fopen( (argc > 1 ? argv[1] : "mpcorb.dat"), "rb");
    FILE *ofile = err_fopen( "mpcorb.sof", "wb");
    ELEMENTS elem;
    long epoch;
    int i;
-   size_t n_out = 0;
+   size_t n_out = 0, n_written;
 
    if( !ifile)
       ifile = err_fopen( "MPCORB.DAT", "rb");
@@ -204,19 +137,39 @@ int main( const int argc, const char **argv)
       if( strlen( buff) == 203 &&
                        (epoch = extract_mpcorb_dat( &elem, buff)) > 0L)
          {
-         char name[13];
+         char name[13], tfirst_buff[20];
+         double jd;
 
          extract_name( name, buff);
-         snprintf( tbuff, 14, "%-13s", name);
+         snprintf_err( tbuff, 14, "%-13s", name);
          output_sof( &elem, tbuff + 13);
-         sprintf( tbuff + strlen( tbuff), "%.4s %.5s ",
+         snprintf_append( tbuff, sizeof( tbuff), "%.4s %.5s ",
                       buff + 137, buff + 117);         /* rms, number obs */
-         sprintf( tbuff + strlen( tbuff), "%.8s %.5s %.5s\n",
-                  buff + 194, buff + 8, buff + 14);        /* Tlast, H, G */
+         jd = get_time_from_string( 0., buff + 194, FULL_CTIME_YMD, NULL);
+         if( !memcmp( buff + 132, "days", 4))
+            jd -= atof( buff + 128);
+         else
+            {
+            int year1, year2, n_scanned;
+
+            n_scanned = sscanf( buff + 127, "%d-%d", &year1, &year2);
+            assert( n_scanned == 2);
+            assert( year1 > 1700);
+            assert( year2 >= year1);
+            assert( year2 < 2100);
+            jd -= (double)( 365 * (year2 - year1 + 1));
+            }
+         full_ctime( tfirst_buff, jd, FULL_CTIME_YMD | FULL_CTIME_NO_SPACES
+                           | FULL_CTIME_MONTHS_AS_DIGITS | FULL_CTIME_DATE_ONLY
+                           | FULL_CTIME_LEADING_ZEROES);
+         snprintf_append( tbuff, sizeof( tbuff), "%.8s %.8s %.7s %.5s %.5s\n",
+                  tfirst_buff, buff + 194,             /* Tfirst, Tlast */
+                  buff + 142, buff + 8, buff + 14);    /* perts, H, G */
          assert( strlen( tbuff) == reclen);
-         memcpy( obuff + n_out * reclen, tbuff, reclen);
          n_out++;
-         assert( n_out < MAX_ORBITS - 1);
+         if( IS_POWER_OF_TWO( n_out))
+            obuff = (char *)realloc( obuff, n_out * 2 * reclen);
+         memcpy( obuff + (n_out - 1) * reclen, tbuff, reclen);
          }
    fclose( ifile);
 
@@ -256,16 +209,15 @@ int main( const int argc, const char **argv)
             snprintf( tbuff, 14, "%-12s ", name);
             output_sof( &elem, tbuff + 13);
             strcat( tbuff, "           ");    /* rms, number obs */
-            strcat( tbuff, "                    \n");     /* Tlast, H, G */
+            strcat( tbuff, "                                     \n");     /* Tlast, perts, H, G */
             assert( strlen( tbuff) == reclen);
             memcpy( obuff + n_out * reclen, tbuff, reclen);
             n_out++;
-            assert( n_out < MAX_ORBITS - 1);
             }
+      fclose( ifile);
       }
-   fclose( ifile);
-   qsort( obuff, n_out, reclen, qsort_compare);
-   fprintf( ofile, "%s", obuff);
+   n_written = fwrite( obuff, reclen, n_out, ofile);
+   assert( n_written == n_out);
    free( obuff);
    fclose( ofile);
    return( 0);

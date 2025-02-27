@@ -137,8 +137,10 @@ static FILE *get_ascii_de_file(
       const char *format_string = (i ? "%sasc%1c%05d.%s":
                                        "%sasc%1c%04d.%s");
 
-      sprintf( buff, format_string, path_to_ascii_files,
+      assert( year > -30000 && year < 30000);
+      snprintf( buff, _MAX_PATH, format_string, path_to_ascii_files,
                  (year < 0 ? 'm' : 'p'), abs( year), de_num);
+      assert( _MAX_PATH - 1 > strlen( buff));
       rval = fopen( buff, "rb");
       }
    return( rval);
@@ -162,7 +164,7 @@ static int determine_year_range( int *year_start, int *year_end,
              int *year_step, const char *path_to_ascii_files, const char *de_num)
 {
    int year;
-   const int max_year = (atoi( de_num) == 431 ? 19000 : 6000);
+   int max_year = 6000;
    unsigned n_found = 0;
    FILE *ifile;
 
@@ -183,6 +185,7 @@ static int determine_year_range( int *year_start, int *year_end,
             *year_step = year - *year_start;
          n_found++;
          *year_end = year;
+         max_year += *year_step;
          }
 #ifdef DEBUGGING_STATEMENTS
       if( n_found)
@@ -198,6 +201,11 @@ static int determine_year_range( int *year_start, int *year_end,
          *year_start -= *year_step;
          fclose( ifile);
          }
+   if( 1 == n_found)       /* year step wasn't actually determined */
+      {
+      *year_step = 10000;
+      *year_end = *year_start + *year_step;
+      }
    return( (n_found ? 0 : -1));
 }
 
@@ -275,9 +283,9 @@ static int get_three_doubles( char *iline, double *ovals)
 int main( const int argc, const char **argv)
 {
     char header[14];
-    char buff[102];
-    char path_to_ascii_files[_MAX_PATH];
-    char output_filename[_MAX_PATH];
+    char buff[300];
+    char path_to_ascii_files[256];
+    char output_filename[256];
     double jd1 = -99999999., jd2 = 99999999., db2z, *db;
     size_t i, j;
     unsigned ksize, n;
@@ -350,9 +358,9 @@ int main( const int argc, const char **argv)
       strcat( path_to_ascii_files, "\\");
 #endif
    if( override_header_name)
-      sprintf( buff, "%s%s", path_to_ascii_files, override_header_name);
+      snprintf( buff, sizeof( buff), "%s%s", path_to_ascii_files, override_header_name);
    else
-      sprintf( buff, "%sheader.%s", path_to_ascii_files, de_num);
+      snprintf( buff, sizeof( buff), "%sheader.%s", path_to_ascii_files, de_num);
 /****************************************************************************/
    ifile = fopen( buff, "rb");
    if( !ifile)
@@ -537,7 +545,7 @@ int main( const int argc, const char **argv)
 /*   open direct-access output file (defaults to 'jpleph.xxx') */
 
    if( !*output_filename)
-      sprintf( output_filename, "jpleph.%s", de_num);
+      snprintf( output_filename, sizeof( output_filename), "jpleph.%s", de_num);
 /***************************************************************************/
 
    ofile=fopen( output_filename, "wb");

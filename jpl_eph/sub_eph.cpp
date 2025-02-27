@@ -40,7 +40,7 @@ static void adjust_epoch( char *buff, const long jd)
 {
    char tbuff[40];
 
-   sprintf( tbuff, "%9ld.5 ", jd);
+   snprintf( tbuff, sizeof( tbuff), "%9ld.5 ", jd);
    full_ctime( tbuff + 12, (long)( jd + 1.001),
              FULL_CTIME_YMD | FULL_CTIME_DATE_ONLY);
    tbuff[18] -= 32;           /* capitalize month names */

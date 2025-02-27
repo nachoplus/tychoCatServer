@@ -257,6 +257,7 @@ int main( const int argc, const char **argv)
    printf( "%u constants\n", n_constants);
    if( n_constants > JPL_MAX_N_CONSTANTS)
       n_constants = JPL_MAX_N_CONSTANTS;
+   printf( "Ephem name '%s'\n", jpl_get_ephem_name( ephem));
    start_jd = jpl_get_double( ephem, JPL_EPHEM_START_JD),
    end_jd =   jpl_get_double( ephem, JPL_EPHEM_END_JD),
    printf("%.9f  %.9f  %.9f\n", start_jd, end_jd,
@@ -289,7 +290,7 @@ int main( const int argc, const char **argv)
      if( extension)
         strcat( buff + i, extension);
      else
-        sprintf( buff + strlen( buff), ".%3ld",
+        snprintf( buff + strlen( buff), sizeof( buff) - strlen( buff), ".%3ld",
             jpl_get_long( ephem, JPL_EPHEM_EPHEMERIS_VERSION));
      }
 

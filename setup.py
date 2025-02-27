@@ -25,18 +25,28 @@ def compile_and_install_software():
     cmd += ' ../build/lib/tychoCatServer'
     subprocess.check_call(cmd, cwd=src_path, shell=True)
 
-    src_path = './jpl_eph/'
-    cmd='make clean'
-    subprocess.check_call(cmd, cwd=src_path, shell=True)
-    cmd='make'
-    subprocess.check_call(cmd, cwd=src_path, shell=True)
-    cmd='make install'
-    subprocess.check_call(cmd, cwd=src_path, shell=True)    
-
+    #First pass
     src_path = './lunar/'
     cmd='make clean'
     subprocess.check_call(cmd, cwd=src_path, shell=True)
-    cmd='make integrat'
+    cmd='export PREFIX=../build && make '
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='export PREFIX=../build && make install'
+    subprocess.check_call(cmd, cwd=src_path, shell=True) 
+
+    src_path = './jpl_eph/'
+    cmd='make clean'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='export PREFIX=../build && make'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='export PREFIX=../build && make install'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)    
+
+    #Lunar second pass
+    src_path = './lunar/'
+    cmd='make clean'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)
+    cmd='export PREFIX=../build && make integrat'
     subprocess.check_call(cmd, cwd=src_path, shell=True)
     cmd='cp integrat ../build/lib/tychoCatServer'
     subprocess.check_call(cmd, cwd=src_path, shell=True)     

@@ -128,7 +128,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def ucac4(self,params):
         formatType,date,ra,dec,r,Type =self.standardParams(params)
-        s=ucac4server.ucac4server()
+        s=ucac4server()
         #limit area to 10º to avoid overheads
         if r>10:
                 r=10

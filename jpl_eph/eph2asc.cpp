@@ -28,6 +28,7 @@ last decimal place.  */
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "jpleph.h"
 
 #define jpl_get_cache( ephem) (*(double **)((char *)ephem + 224 + 48))
@@ -40,8 +41,12 @@ last decimal place.  */
 
 static void put_in_buff( char *buff, const double val)
 {
-   sprintf( buff, "%25.15E", val);
-   sprintf( buff + 20, "D%+03d", atoi( buff + 21) + 1);
+   int exponent;
+
+   snprintf( buff, 26, "%25.15E", val);
+   exponent = atoi( buff + 21) + 1;
+   assert( exponent > -90 && exponent < 90);
+   snprintf( buff + 20, 13, "D%+03d", exponent);
    buff[1] = buff[2];   /* grab minus sign if any */
    buff[4] = buff[3];
    buff[2] = '0';       /* insert leading zero */

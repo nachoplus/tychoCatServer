@@ -3,13 +3,15 @@
 
 all: asc2eph.exe dump_eph.exe eph2asc.exe merge_de.exe testeph.exe sub_eph.exe
 
-!ifdef BITS_32
-COMMON_FLAGS=-nologo -W3 -EHsc -c -FD
-LIBNAME=lunar
-RM=rm
-!else
 COMMON_FLAGS=-nologo -W3 -EHsc -c -FD -D_CRT_SECURE_NO_WARNINGS
-LIBNAME=lunar64
+
+!ifdef BITS_32
+LUNARLIBNAME=lunar32
+LIBNAME=jpleph32.lib
+RM=del
+!else
+LUNARLIBNAME=lunar64
+LIBNAME=jpleph64.lib
 RM=del
 !endif
 
@@ -23,7 +25,7 @@ clean:
    $(RM) f_strtod.obj
    $(RM) jpleph.dll
    $(RM) jpleph.exp
-   $(RM) jpleph.lib
+   $(RM) $(LIBNAME)
    $(RM) jpleph.obj
    $(RM) merge_de.obj
    $(RM) merge_de.exe
@@ -32,34 +34,34 @@ clean:
    $(RM) testeph.obj
    $(RM) testeph.exe
 
-testeph.exe:    testeph.obj jpleph.lib
-   link /nologo testeph.obj jpleph.lib
+testeph.exe:    testeph.obj $(LIBNAME)
+   link /nologo testeph.obj $(LIBNAME)
 
-merge_de.exe:   merge_de.obj jpleph.lib
-   link /nologo merge_de.obj jpleph.lib
+merge_de.exe:   merge_de.obj $(LIBNAME)
+   link /nologo merge_de.obj $(LIBNAME)
 
-eph2asc.exe:    eph2asc.obj jpleph.lib
-   link /nologo eph2asc.obj jpleph.lib
+eph2asc.exe:    eph2asc.obj $(LIBNAME)
+   link /nologo eph2asc.obj $(LIBNAME)
 
-dump_eph.exe:   dump_eph.obj jpleph.lib
-   link /nologo dump_eph.obj jpleph.lib
+dump_eph.exe:   dump_eph.obj $(LIBNAME)
+   link /nologo dump_eph.obj $(LIBNAME)
 
 asc2eph.exe:    asc2eph.obj f_strtod.obj
    link /nologo asc2eph.obj f_strtod.obj
 
-sub_eph.exe:    sub_eph.obj jpleph.lib
-   link /nologo sub_eph.obj jpleph.lib $(LIBNAME).lib
+sub_eph.exe:    sub_eph.obj $(LIBNAME)
+   link /nologo sub_eph.obj $(LIBNAME) $(LUNARLIBNAME).lib
 
-jpleph.lib: jpleph.obj
-   $(RM) jpleph.lib
+$(LIBNAME): jpleph.obj
+   $(RM) $(LIBNAME)
 !ifdef DLL
    $(RM) jpleph.dll
    link /nologo /DLL /IMPLIB:jpleph.lib /DEF:jpleph.def jpleph.obj
 !else
-   lib /OUT:jpleph.lib jpleph.obj
+   lib /OUT:$(LIBNAME) jpleph.obj
 !endif
 
-CFLAGS=-Ox -MT $(COMMON_FLAGS)
+CFLAGS=-O2 -MT $(COMMON_FLAGS)
 
 jpleph.obj: jpleph.cpp
 !ifdef DLL
@@ -74,3 +76,6 @@ sub_eph.obj: sub_eph.cpp
 .cpp.obj:
    cl $(CFLAGS) $<
 
+install:
+   copy jpleph.h   ..\myincl
+   copy $(LIBNAME) ..\lib

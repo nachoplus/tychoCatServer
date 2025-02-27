@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #ifndef AFUNCS_H_INCLUDED
 #define AFUNCS_H_INCLUDED
 
+#include <stdint.h>              /* required for int64_t #define */
+
 #ifndef DPT
 #define DPT struct dpt
 
@@ -61,12 +63,15 @@ DPT
 extern "C" {
 #endif /* #ifdef __cplusplus */
 
+int DLL_FUNC constell_from_ra_dec( const double ra_degrees_1875,
+                                   const double dec_degrees_1875,
+                                   char DLLPTR *constell_name);
 void DLL_FUNC make_var_desig( char DLLPTR *buff, int var_no);
 int DLL_FUNC decipher_var_desig( const char DLLPTR *desig);
-int DLL_FUNC setup_precession( double DLLPTR *matrix, double t1,
-                               double t2);    /* precess.c */
+int DLL_FUNC setup_precession( double DLLPTR *matrix, const double year_from,
+                               const double year_to);   /* precess.c */
 int DLL_FUNC setup_ecliptic_precession( double DLLPTR *matrix,
-                    const double t1, const double t2);
+                    const double year_from, const double year_to);
 int DLL_FUNC setup_precession_with_nutation( double DLLPTR *matrix,
                     const double year);         /* precess.c */
 int DLL_FUNC setup_precession_with_nutation_delta( double DLLPTR *matrix,
@@ -86,6 +91,8 @@ void DLL_FUNC rotate_vector( double DLLPTR *v, const double angle,
 void DLL_FUNC polar3_to_cartesian( double *vect, const double lon,
                                           const double lat);
 double DLL_FUNC vector3_length( const double *vect);
+double DLL_FUNC dot_product( const double *a, const double *b);
+double DLL_FUNC normalize_vect3( double *vect);
 void DLL_FUNC vector_cross_product( double *xprod, const double *a,
                                 const double *b);
          /* Following two functions convert 3-D vectors to/from */
@@ -98,6 +105,7 @@ void DLL_FUNC spin_matrix( double *v1, double *v2, const double angle);
 void DLL_FUNC pre_spin_matrix( double *v1, double *v2, const double angle);
 double DLL_FUNC td_minus_ut( const double jd);                /* delta_t.c */
 double DLL_FUNC td_minus_utc( const double jd_utc);           /* delta_t.c */
+double DLL_FUNC tdb_minus_utc( const double jd_utc);
 long double DLL_FUNC tdb_minus_tdt( const long double t_centuries);
 void DLL_FUNC reset_td_minus_dt_string( const char *string);  /* delta_t.c */
 
@@ -158,13 +166,17 @@ typedef struct
 #define EOP_FILE_WRONG_FORMAT  -2
 #define EOP_ALLOC_FAILED       -3
 
+extern int mjd_end_of_predictive_leap_seconds;       /* see delta_t.cpp */
+
 int DLL_FUNC load_earth_orientation_params( const char *filename,
                                              int *file_date);
 int DLL_FUNC get_earth_orientation_params( const double jd,  /* eop_prec.c */
-                              earth_orientation_params *params);
+                              earth_orientation_params *params,
+                              int desired_params_mask);
 int DLL_FUNC setup_precession_with_nutation_eops( double DLLPTR *matrix,
                     const double year);            /* eop_prec.c */
-
+int64_t DLL_FUNC nanoseconds_since_1970( void);    /* nanosecs.c */
+double DLL_FUNC current_jd( void);                 /* nanosecs.c */
 
 #ifdef __cplusplus
 }

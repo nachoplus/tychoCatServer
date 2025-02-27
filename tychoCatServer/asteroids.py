@@ -252,7 +252,7 @@ class MPCEphem:
         eachdays=float(cfg['eachdays'])
 
         if len(date)==0:
-            d = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            d = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         else:
             d = datetime.datetime.strptime(date,"%Y-%m-%d %H:%M:%S")
 

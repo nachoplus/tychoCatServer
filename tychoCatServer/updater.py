@@ -19,8 +19,8 @@ from .asteroids import MPCEphem
 import filecmp
 import time
 
-from config import *
-from helper import *
+from .config import *
+from .helper import *
 
 # Create a custom logger
 logger = logging.getLogger('updater')
@@ -163,7 +163,7 @@ class propagateMPCorb:
         using Bill Gray integrat soft
         '''
         de_jpl=cfg["de_jpl"]
-        call_list=["./code/integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
+        call_list=[f"{pkgpath}/integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
         logger.info(call_list)
         p=call(call_list)
         logger.info(p)

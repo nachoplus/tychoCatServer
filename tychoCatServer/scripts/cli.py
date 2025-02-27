@@ -15,13 +15,12 @@ def tychoCatServer(cmd):
         logging.info(f"Starting download process")
         from  ..downloader import download
         download()
-    elif 'updater' in cmd:
-        logging.info(f"Starting updater. It will be run indefinidely")
+    elif 'update' in cmd:
+        logging.info(f"Starting updater. ")
         from  ..updater import update        
         update()        
-    elif 'bootstrap' in cmd:
-        logging.info(f"Starting bootstrap")
-        from  ..bootstrap import bootstrap        
-        bootstrap()           
+    elif 'info' in cmd:
+        from ..config import printCfg
+        printCfg()
     else:
         logging.error(f"COMMAND:{cmd} DOES NOT EXIST")

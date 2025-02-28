@@ -20,8 +20,19 @@ pkgpath=os.path.dirname(__file__)
 
 #Read values from main.cfg
 config = configparser.ConfigParser()
-configs_files=[f'{x}/tychoCatServer.cfg' for x in ['.','$HOME/.config/tychoCatServer','./config']]
-config.read(configs_files)
+homeconfig=os.path.join(os.path.expanduser('~'), '.config/tychoCatServer')
+_configs_files=[f'{x}/tychoCatServer.cfg' for x in ['/etc/tychoCatServer',homeconfig,'./config','.']]
+configs_files=[x  for x in _configs_files if os.path.exists(x)]
+if len(configs_files)>1:
+    print(f'SEVERAL CONFIG FILES FOUND:{configs_files}. Using the last one:{configs_files[-1]}')
+elif len(configs_files)==1:
+    print(f'CONFIG FILE FOUND:{configs_files[-1]}')
+else:
+    print(f'ERROR: NO CONFIG FILE WAS FOUND')
+    os.popen(f'cp {binpath}/config/tychoCatServer.cfg tychoCatServer.cfg') 
+    print(f"Default config:tychoCatServer.cfg was created in current path. Edit and put in one of this locations following your preferences:\n{_configs_files}")
+    exit(1)
+config.read(configs_files[-1])
 cfg_general=config._defaults
 
 def TodayDir():

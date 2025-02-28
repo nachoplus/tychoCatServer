@@ -1,8 +1,3 @@
-__tychoCatServer__
-.. image:: https://travis-ci.org/nachoplus/tychoCatServer.svg
-   :target: https://travis-ci.org/nachoplus/tychoCatServer
-
-
 Introduction
 ============
 tychoCatServer is a ephemerids server. Its aim is to get a collection of objects present in a sky region at given time. 
@@ -19,7 +14,8 @@ At this time tychoCatServer provide ephemerids for:
 
 The output format will be html,csv,excel,fits,pickle,json or mpc 
 
-This software is heavily base on pyephem for calculations https://github.com/brandon-rhodes/pyephem . Also use a Bill Gray **integrat** from project pluto http://www.projectpluto.com/pluto/integrat.htm .
+This software is heavily base on pyephem for calculations https://github.com/brandon-rhodes/pyephem.
+Also use a Bill Gray **integrat** from project pluto http://www.projectpluto.com/pluto/integrat.htm to propagate asteroids orbital element to differents dates.
 
 Installation
 ============
@@ -30,9 +26,32 @@ python3 -m venv venv
 source venv/bin/activate
 git clone https://github.com/nachoplus/tychoCatServer.git
 cd tychoCatServer
-(edit config/main.cfg to set your observatory code lat/lon and other details)
 pip install .
 ```
+Alternative you can install directly from github:
+```console
+python3 -m venv venv
+source venv/bin/activate
+pip install git+https://github.com/nachoplus/tychoCatServer.git@new_updater
+```
+
+>Do not forget to create a config file (see next section)
+
+
+Config file tychoCatServer.cfg
+==============================
+
+This file is mandatory and could be in the following locations:
+* /etc/tychoCatServer/tychoCatServer.cfg
+* $HOME/.config/tychoCatServer/tychoCatServer.cfg
+* ./config/tychoCatServer.cfg
+* . (current dir)
+
+The lattest take precent over the others.
+
+In this file are all the relevant variables. Please edit to reflect your setup.
+
+
 
 Asteroids
 =========
@@ -83,7 +102,6 @@ This are the steps that bootstrap.py performs:
 
 4. Download (109Mb) JPL ephem  from: ftp://ssd.jpl.nasa.gov/pub/eph/planets/Linux/de430/linux_p1550p2650.430 needed by integrat.
 
-5. Compile pyephem pkg. 
 
 It take some time (more than 3.3Gb of downloads)
 
@@ -92,9 +110,8 @@ Now, depending of the setting of 'use_fix_mpcorb':
 * use_fix_mpcorb='False'=> Run updaterCatServer.py to create the firts cache. The run take very very very long time depending of your dateto/datefrom may be several days!!
 
 __TODO__
-* Accept observatory code or coords in the url. At this time observatory is fixed in main.cfg
-* Improving bootstrap.py 
-* Create information page telling what database is ussing
+* Accept observatory code or coords in the url. At this time observatory is fixed in tychoCatServer.cfg
+* Create information page telling what database is using
 
 
 __Run the server__
@@ -108,7 +125,7 @@ __Use__
 ----------
 tychoCatServer is a regular http server. You visit below url with your favorite browser. The aim of this server is provide a collection of objects present in a sky region at given time. Thus date, ra (degrees), dec(degrees) and r (search radio in degrees) are mandatory.
 
-At the present times you can get stars from UCAC4 catalog, satellites or know asteroids. Output file format {format} can take this values: html,csv,excel,fits or mpc
+At the present times you can get stars from UCAC4 catalog, satellites or know asteroids. Output file format {format} can take this values: html,csv,excel,fits,json,pickle or mpc
 
 ####**URL syntax:**
 

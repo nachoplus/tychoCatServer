@@ -1,20 +1,7 @@
 from setuptools import setup, find_packages
-import os,sys
 from setuptools.command.build import build
 import subprocess
 
-def get_virtualenv_path():
-    """Used to work out path to install compiled binaries to."""
-    if hasattr(sys, 'real_prefix'):
-        return sys.prefix
-
-    if hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix:
-        return sys.prefix
-
-    if 'conda' in sys.prefix:
-        return sys.prefix
-
-    return None
 
 
 def compile_and_install_software():

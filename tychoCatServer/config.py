@@ -29,7 +29,7 @@ elif len(configs_files)==1:
     print(f'CONFIG FILE FOUND:{configs_files[-1]}')
 else:
     print(f'ERROR: NO CONFIG FILE WAS FOUND')
-    os.popen(f'cp {binpath}/config/tychoCatServer.cfg tychoCatServer.cfg') 
+    os.popen(f'cp {pkgpath}/config/tychoCatServer.cfg tychoCatServer.cfg') 
     print(f"Default config:tychoCatServer.cfg was created in current path. Edit and put in one of this locations following your preferences:\n{_configs_files}")
     exit(1)
 config.read(configs_files[-1])

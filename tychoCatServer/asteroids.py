@@ -244,8 +244,8 @@ class MPCEphem:
         return Pos
 
     def setNames(self,date='',sufix=".MPCORB.DAT"):
-        dir_dest=cfg["datempcorb"]
-        dir_guestDB=cfg["guestdbdir"]
+        dir_dest=dated_mpcorb_dir
+        dir_guestDB=guestdb_dir
         datestart=float(cfg['date0'])
         datefrom=float(cfg['datefrom'])
         dateto=float(cfg['dateto'])

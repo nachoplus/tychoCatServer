@@ -168,7 +168,7 @@ class sqliteEngine():
 		print [record for record in cur.fetchall()]
 
 
-   def updateMPCorb(self):  
+   def updated_mpcorb_dir(self):  
 	#ast=self.decodeMPCorb('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT',offset=41)
 	#self.saveMPCorb(ast)
 	ast=self.decodeMPCorb('http://www.minorplanetcenter.net/iau/MPCORB/DAILY.DAT')

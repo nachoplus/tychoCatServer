@@ -25,6 +25,8 @@ def compile_and_install_software():
     subprocess.check_call(cmd, cwd=src_path, shell=True)
     cmd='export PREFIX=../build && make install'
     subprocess.check_call(cmd, cwd=src_path, shell=True) 
+    cmd='cp mpc2sof ../build/lib/tychoCatServer'
+    subprocess.check_call(cmd, cwd=src_path, shell=True)     
 
     src_path = './jpl_eph/'
     cmd='make clean'

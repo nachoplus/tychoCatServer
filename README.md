@@ -62,7 +62,7 @@ This cache mechanish has two modes of operation:
 
 1. Fix MPCORB.DAT: Is the user responsability to download a recent MPCORB.DAT from http://www.minorplanetcenter.net/iau/MPCORB.html . Then cache position are calculate for a given day the first time that is needed. As osculating orbital elements change over the time this mode of operation only works well for dates near (+-50 days) the MPCORB.DAT file. This mode of operation is oriented to Observatory ephemerids server. (use_fix_mpcorb='True') 
 
-2. MPCORB.DAT is only valid for a dates near (+-100days) its epoch. To overhelm this limitation the elements in MPCORB.DAT are propagated to diferents epoch using 'integrat', thus acurate calculation will be done. In this mode updateMPCORB.py script must be running all the time in order to update the database with new asteroids. This mode of operation is oriented to precoveries and general ephemerids server for far dates.(use_fix_mpcorb='False') 
+2. MPCORB.DAT is only valid for a dates near (+-100days) its epoch. To overhelm this limitation the elements in MPCORB.DAT are propagated to diferents epoch using 'integrat', thus acurate calculation will be done. In this mode updated_mpcorb_dir.py script must be running all the time in order to update the database with new asteroids. This mode of operation is oriented to precoveries and general ephemerids server for far dates.(use_fix_mpcorb='False') 
 
 
 
@@ -106,7 +106,7 @@ This are the steps that bootstrap.py performs:
 It take some time (more than 3.3Gb of downloads)
 
 Now, depending of the setting of 'use_fix_mpcorb':
-* use_fix_mpcorb='True' => Download MCPORB.DAT rename to FIX_MPCORB.DAT and put in the 'datempcorb' dir
+* use_fix_mpcorb='True' => Download MCPORB.DAT rename to FIX_MPCORB.DAT and put in the 'dated_mpcorb_dir' dir
 * use_fix_mpcorb='False'=> Run updaterCatServer.py to create the firts cache. The run take very very very long time depending of your dateto/datefrom may be several days!!
 
 __TODO__
@@ -118,7 +118,7 @@ __Run the server__
 ----------
 
 Go to the tychoCatServer home_dir and execute ./tychoCatServer.py
-When use_fix_mpcorb='False' execute also ./updateMPCORB.py . This script must be running all the time in order to update the database with new asteroids.
+When use_fix_mpcorb='False' execute also ./updated_mpcorb_dir.py . This script must be running all the time in order to update the database with new asteroids.
 
 
 __Use__

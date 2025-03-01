@@ -40,7 +40,7 @@ class propagateMPCorb:
     Class to download mpcfiles, propagate to diferents epoch and update 
     mpcorb and guestDBs.
     '''
-    datedmpcorb=cfg["datempcorb"]
+    datedmpcorb=dated_mpcorb_dir
     date0=float(cfg['date0'])
     datefrom=float(cfg['datefrom'])
     dateto=float(cfg['dateto'])
@@ -61,7 +61,7 @@ class propagateMPCorb:
         the date
         '''
         cfg=dict(config.items("MPCORB"))
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
         fileD='MPCORB.DAT'
@@ -83,7 +83,7 @@ class propagateMPCorb:
             res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
             logger.info(res)
             logger.info("Cleaning FIX_guest_* cache files")
-            res=exe("rm "+cfg["guestdbdir"]+"/FIX_guest_????-??-??.p")
+            res=exe("rm "+guestdb_dir+"/FIX_guest_????-??-??.p")
             logger.info(res)                  
 
         else:
@@ -102,7 +102,7 @@ class propagateMPCorb:
         the last asteroid key in the list.
         Return False if already downloaded
         '''
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
         logger.info("Downloading")
@@ -162,7 +162,6 @@ class propagateMPCorb:
         update osculating elements to a new epoch
         using Bill Gray integrat soft
         '''
-        de_jpl=cfg["de_jpl"]
         call_list=[f"{pkgpath}/integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
         logger.info(call_list)
         p=call(call_list)
@@ -349,7 +348,7 @@ class propagateMPCorb:
 
 
     def readFile(self,filename):
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         filename=dir_dest+"/"+filename
         logger.info("Reading:%s",filename)
         MPC = open(filename, "r")
@@ -376,7 +375,7 @@ class propagateMPCorb:
         content_update_keys_list=np.asarray([x[:7] for x in content_update ])
         nrecords_update=len(content_update_keys_list)
 
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         mpcfile=dir_dest+"/"+mpcfile
         #This an update so check if allready exist the file
         if  not os.path.isfile(mpcfile):
@@ -436,14 +435,14 @@ class propagateMPCorb:
         logger.info(list(same))
 
     def DailyHousekeep(self):
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         filename=dir_dest+"/"+update_records
         os.remove(filename)
         pass
 
 def update():
     '''
-        1.- Call initMPC() to download MPCORB.DAT. Only one time. First version of DATEMPCORB set. Long run ...
+        1.- Call initMPC() to download MPCORB.DAT. Only one time. First version of dated_mpcorb_dir set. Long run ...
         2.- Call populateGuestDB() to create firts version of guestDB (Only one time). Very long run ...
         3.- Call updateMPC_DAILY() to download DAILY.DAT and updateGuest_DAILY() to add/update records to MCORB and guestDB files
     '''

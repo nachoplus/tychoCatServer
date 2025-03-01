@@ -3,3 +3,4 @@ include tychoCatServer/favicon.ico
 include tychoCatServer/style.css
 include tychoCatServer/helptext.txt
 include tychoCatServer/tychoCatServer.cfg
+include tychoCatServer/STATIC_CATS/*.cat

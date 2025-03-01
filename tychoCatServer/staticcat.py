@@ -17,7 +17,11 @@ import logging
 # Create a custom logger
 logger = logging.getLogger(__name__)
 
-cfg=dict(config.items("STATIC_CATS"))
+catalogs={
+    'hyperleda':f'{pkgpath}/STATIC_CATS/HYPERLEDA_6.cat',
+    'hip2':f'{pkgpath}/STATIC_CATS/HIP2.cat',
+    'ngc':f'{pkgpath}/STATIC_CATS/NGC.cat',
+}
 
 class staticCat():
 
@@ -31,7 +35,7 @@ class staticCat():
         w=r*2
         h=r*2
         catalog=self.catalogFile
-        f=pyfits.open(cfg[catalog])
+        f=pyfits.open(catalogs[catalog])
         olddata=np.array(f[1].data)
 
         newtypes=[]

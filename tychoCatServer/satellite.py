@@ -17,6 +17,7 @@ import logging
 # Create a custom logger
 logger = logging.getLogger(__name__)
 
+
 cfg=dict(config.items("TLE"))
 cfgOBS=dict(config.items("OBSERVATORY"))
 
@@ -145,7 +146,7 @@ class satEphem():
         Chose and load the most apropiate TLE file.
         '''
         self.downloadTLEfile()
-        dir_dest=cfg["tledir"]
+        dir_dest=tledir
         d=ephem.date(date)
         dirs = [os.path.basename(x) for x in glob.glob( dir_dest+'/??-??-??.TLE')]
         days=list(map(lambda x:ephem.date('20'+x[:8].replace('-','/')+" 00:00:00"),dirs))
@@ -163,7 +164,7 @@ class satEphem():
         '''
         Download TLE file of the day unzip and rename
         '''
-        dir_dest=cfg["tledir"]
+        dir_dest=tledir
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
         tlefile=dir_dest+'/'+getToday()+".TLE"

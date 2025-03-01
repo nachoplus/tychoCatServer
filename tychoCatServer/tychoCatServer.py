@@ -42,7 +42,7 @@ import logging
 # Create a custom logger
 logger = logging.getLogger('catserver')
 
-cfg=dict(config.items("DEFAULT"))
+cfg=dict(config.items("COMMON"))
 
 
 #HOST_NAME = cfg['server_address'] 
@@ -253,11 +253,11 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def fitsOutput(self,data):
         from astropy.table import Table
         #out = BytesIO()
-        out = open(cfg['base_dir']+'/tmp.fit','wb')
+        out = open(cfg['storage_dir']+'/tmp.fit','wb')
         t=Table(data)
         t.write(out,format='fits')
         out.close()
-        out = open(cfg['base_dir']+'/tmp.fit','rb')
+        out = open(cfg['storage_dir']+'/tmp.fit','rb')
         the_stream = out.read()   # here is your file content
         out.close()
         return the_stream
@@ -284,7 +284,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         tbhdu.data= np.array(data).view(tbhdu._data_type)
         tbhdu.writeto(out, overwrite=True)
         out.close()
-        out = open(cfg['base_dir']+'/tmp.fit','rb')
+        out = open(cfg['storage_dir']+'/tmp.fit','rb')
         the_stream = out.read()   # here is your file content
         out.close()
         return the_stream
@@ -299,7 +299,7 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         thdulist.append(tbhdu)
         thdulist.writeto(out, clobber=True)
         out.close()
-        out = open(cfg['base_dir']+'/tmp.fit','rb')
+        out = open(cfg['storage_dir']+'/tmp.fit','rb')
         the_stream = out.read()   # here is your file content
         out.close()
         return the_stream
@@ -495,7 +495,7 @@ def runServer():
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     httpd.daemon=True
     logger.info("Server Starts on  %s:%s" ,HOST_NAME, PORT_NUMBER)
-    if cfg['use_fix_mpcorb']=='True':
+    if config.get('MPCORB','use_fix_mpcorb')=='True':
         logger.warning("use_fix_mpcorb='True' is set")
         logger.warning("All calculation will be done for a FIX_MPCORB.DAT")
         logger.warning("Calculation for distant dates may be inacurate.")

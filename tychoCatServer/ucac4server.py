@@ -12,7 +12,7 @@ import numpy as np
 import os
 import logging
 
-from  .ucac4 import *
+from .ucac4 import *
 from .config import *
 
 
@@ -20,7 +20,6 @@ from .config import *
 # Create a custom logger
 logger = logging.getLogger(__name__)
 
-cfg=dict(config.items("UCAC4"))
 
 class ucac4server():
 
@@ -44,8 +43,8 @@ class ucac4server():
     def load(self,ra,dec,r):
         w=r*2
         h=r*2
-        path=cfg['datadir']+'/u4b'
-        filename=cfg['base_dir']+"/tmp.stars"
+        path=f'{ucac4data_dir}/u4b'
+        filename=f"{storage_dir}/tmp.stars"
         starsfile=fopen(filename, 'wr')
         f=0
         logger.info("retriving %s stars",extract_ucac4_stars(starsfile,ra,dec,w,h,path,f))

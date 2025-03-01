@@ -33,7 +33,19 @@ else:
     print(f"Default config:tychoCatServer.cfg was created in current path. Edit and put in one of this locations following your preferences:\n{_configs_files}")
     exit(1)
 config.read(configs_files[-1])
-cfg_general=config._defaults
+
+cfg_common=dict(config.items('COMMON'))
+print(cfg_common)
+storage_dir=config.get('COMMON','storage_dir')
+
+#INTERNAL CONFIG VARS
+
+tledir=f'{storage_dir}/TLEs'
+ucac4data_dir=f'{storage_dir}/UCAC4'
+dated_mpcorb_dir=f'{storage_dir}/DATEDMPCORB'
+guestdb_dir=f'{storage_dir}/guestDB'
+de_jpl=f'{storage_dir}/DE-JPL/linux_p1550p2650.430'
+
 
 def TodayDir():
     return getToday()
@@ -46,14 +58,14 @@ def getToday():
     today = datetime.datetime.now()
 
     #For ours propouse we change the day at noon
-    today=today-datetime.timedelta(hours=float(cfg_general['day_change_at']))
+    today=today-datetime.timedelta(hours=float(cfg_common['day_change_at']))
 
     # Formatted date
-    if len(cfg_general['force_day'])==0:
+    if len(cfg_common['force_day'])==0:
         return today.strftime("%y-%m-%d")
     else:
-        print("Forcing Date",cfg_general['force_day'])
-        return cfg_general['force_day']
+        print("Forcing Date",cfg_common['force_day'])
+        return cfg_common['force_day']
 
 def writeCfg(directory):
     filename=directory+"/main_"+TodayDir()+".cfg"

@@ -24,8 +24,7 @@ def ucac4files():
         logger.info("Downloading UCAC4 catalog files:")
         logger.warning("About 9GB of data. It could be take very-very long time!!")
         logger.info("visit http://cdsarc.u-strasbg.fr/viz-bin/Cat?I/322A for catalog description")
-        cfg=dict(config.items("UCAC4"))
-        path=cfg['datadir']
+        path=ucac4data_dir
         if not os.path.exists(path+"/UCAC4.finished"):
                 if not os.path.exists(path):
                     logger.info("Creating UCAC4 catalog dir:%s",path)
@@ -42,7 +41,7 @@ def jplEph():
         pkg='ftp://ssd.jpl.nasa.gov/pub/eph/planets/Linux/de430/linux_p1550p2650.430'
         logger.info("Downloading JPL Ephem file:"+pkg)
         cfg=dict(config.items("MPCORB"))
-        path=os.path.dirname(os.path.abspath(cfg['de_jpl']))
+        path=os.path.dirname(os.path.abspath(de_jpl))
         file_name = pkg.split('/')[-1]
         
         if not os.path.exists(path):
@@ -62,7 +61,7 @@ def downloadMPCORBfile():
         the date
         '''
         cfg=dict(config.items("MPCORB"))
-        dir_dest=cfg["datempcorb"]
+        dir_dest=dated_mpcorb_dir
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
         fileD='MPCORB.DAT'
@@ -84,7 +83,7 @@ def downloadMPCORBfile():
             res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
             logger.info(res)
             logger.info("Cleaning FIX_guest_* cache files")
-            res=exe("rm "+cfg["guestdbdir"]+"/FIX_guest_????-??-??.p")
+            res=exe("rm "+guestdb_dir+"/FIX_guest_????-??-??.p")
             logger.info(res)                  
         else:
             logger.info("%s EXIST. Using" % datedmpcorbfile)
@@ -95,10 +94,10 @@ def downloadMPCORBfile():
 
 def download():
         cfg=dict(config.items("MPCORB"))
-        logger.warning("================================================")
+        logger.warning("====================================================")
         logger.warning("                  DOWNLOADER")
-        logger.warning("CHECK your data_dir in config/main.cfg file!!!")
-        logger.warning("================================================")
+        logger.warning("CHECK your storage_dir in tychoCatServer.cfg file!!!")
+        logger.warning("====================================================")
         logger.warning("")
         logger.info("Step 1. -------------------------------------------")
         ucac4files()
@@ -108,7 +107,7 @@ def download():
             logger.info("Step 3. -------------------------------------------")
             logger.info("OBSERVATORY MODE:")
             downloadMPCORBfile()
-        path=cfg['base_dir']
+        path=storage_dir
         logger.warning("================================================")
         logger.warning("                        READY!")
         logger.warning("All the data was put on:%s",path)
@@ -118,8 +117,8 @@ def download():
         logger.warning("")
         logger.warning("use_fix_mpcorb='True'")
         logger.warning("\tDownload MCPORB.DAT rename to FIX_MPCORB.DAT and")
-        logger.warning("\tput in the 'datempcorb' dir:")
-        logger.warning("\t%s",cfg['datempcorb'])
+        logger.warning("\tput in the 'dated_mpcorb_dir' dir:")
+        logger.warning("\t%s",cfg['dated_mpcorb_dir'])
         logger.warning("")
         logger.warning("use_fix_mpcorb='False'")
         logger.warning("\tRun updaterCatServer.py to create the cache.")

@@ -12,7 +12,7 @@ services:
         - 9000:9000
         volumes:
             - tycho-cat-server-data:/app/var
-            - ../config:/app/config
+            - ./config:/app/config
 
 volumes:
         tycho-cat-server-data: {}

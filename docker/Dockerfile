@@ -5,11 +5,10 @@ RUN apt update && apt install -y --no-install-recommends gcc g++ make swig pytho
 RUN python3 -m venv  --symlinks /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-COPY requirements.txt /app/
 RUN pip3 install wheel && pip3 install --upgrade cython
-COPY / /app
-WORKDIR /app
-RUN cd /app && pip3 install .
+COPY / /app/src
+WORKDIR /app/src
+RUN cd /app/src && pip3 install .
 
 
 FROM debian:bookworm as runtime

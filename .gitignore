@@ -10,7 +10,7 @@ ucac4.src/ucac4.py
 ucac4.src/ucac4_wrap.c
 integrat
 *.sof
-./tychoCatServer.cfg
+tychoCatServer.cfg
 venv
 build
 tychoCatServer.egg-info

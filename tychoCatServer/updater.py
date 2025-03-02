@@ -162,6 +162,10 @@ class propagateMPCorb:
         update osculating elements to a new epoch
         using Bill Gray integrat soft
         '''
+        pkg=config.get('MPCORB','jpl_eph_url')
+        path=f'{storage_dir}/DE-JPL'
+        file_name = pkg.split('/')[-1]
+        de_jpl=f'{path}/{file_name}'
         call_list=[f"{pkgpath}/integrat",mpcorb_from,mpcorb_to,newdate,"-f"+de_jpl]
         logger.info(call_list)
         p=call(call_list)

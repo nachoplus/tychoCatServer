@@ -1,10 +1,13 @@
 import click
 import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+logger=logging.getLogger("CAT SERVER")
 
 #Alta o modificación de suministro
 @click.command()
 @click.argument('cmd',type=str)
+
 def tychoCatServer(cmd):
     logging.info(f"COMMAND:{cmd}")
     if 'server' in cmd:
@@ -24,3 +27,4 @@ def tychoCatServer(cmd):
         printCfg()
     else:
         logging.error(f"COMMAND:{cmd} DOES NOT EXIST")
+        

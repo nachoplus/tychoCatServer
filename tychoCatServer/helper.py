@@ -2,9 +2,10 @@
 # -*- coding: iso-8859-15 -*-
 #tychoSuit
 
-
+import multiprocessing
 import numpy as np
 import ephem
+import logging
 
 pi=np.pi
 
@@ -220,6 +221,101 @@ def asteroid_type(a,e,i):
         t_=';'.join(t)
         return t_
         
+def read_sof_file(sof_file):
+        with open(sof_file,'r') as sof:
+            lines=sof.readlines()
+        _hdr=lines[0].split('|')
+        hdr=[]
+        for h in _hdr:
+              hdr.append(h.replace('.','').replace('^','').strip())
+        hdr.insert(hdr.index('Perts')+1,'Perts_ext')
+        result=dict()
+        for line in lines[1:]:
+                line_elements=line.split()
+                name=line_elements[0]
+                start_in=1
+                #test for names with two words
+                try:
+                        float(line_elements[1])
+                except ValueError:
+                        name=name+" "+line_elements[1]
+                        start_in=2
+                result[name]=dict()
+                for i,e in enumerate(line_elements[start_in:]):
+                      #convert to float
+                      if hdr[i+1] in ['Te','Tfirst','Tlast']:
+                        value=e
+                      elif hdr[i+1] in ['n_o']:
+                        value=int(e)
+                      else:  
+                        try:
+                                value=float(e)
+                        except:
+                                value=e
+                      result[name].update({hdr[i+1]:value})
+        return result
+                      
+
+def threadCompute(computeFn,bodies,delta=0):
+    '''
+    Speed up. Make a chunk of bodies dict and process in
+    one thread per CPU core.
+    bodies is a dict contain elements
+    delta is the time to compute PA,SPEED
+    '''
+    ncores=multiprocessing.cpu_count()
+    if len(bodies)<=ncores*10:
+        logging.info("Not to much bodies(%d). Going single thread", len(bodies))
+        return computeFn(bodies,delta)
+
+    chunk_size=int(len(bodies)/ncores)
+
+    bodies_chunks=[dict(list(bodies.items())[x:x+chunk_size]) for x in range(0, chunk_size*ncores,chunk_size)]
+    if len(bodies) % ncores !=0:
+            bodies_chunks.append(dict(list(bodies.items())[chunk_size*ncores:]))
+    logging.info("CORES:%s #BODIES:%s CHUNK_SIZE:%s #CHUNKS:%s",ncores,len(bodies),chunk_size,len(bodies_chunks))
+
+    try:
+        logging.info("Creating Threads ...")
+        threadsPool=[]
+        #define threads
+
+        for i,chunk in enumerate(bodies_chunks):
+            #print chunk
+            #t = Thread(None,computeFn,None, (chunk,))
+            t=multiprocessing.Process(target=computeFn, args=(chunk,delta,))
+            threadsPool.append(t)
+
+        # Start all threads
+        [x.start() for x in threadsPool]
+        logging.info("Started %s threads",len(threadsPool))
+
+        #to avoid full queue retrive the result while threads are running 
+        result=[]
+        while 1:
+            running = any(p.is_alive() for p in threadsPool)
+            if not running:
+                    break
+        # Wait for all of them to finish
+        [x.join() for x in threadsPool]
+        logging.info("All threads finished")
+
+        #print "Threads got..."
+        # Wait for all of them to finish
+        [x.join() for x in threadsPool]
+        #print "Threads close..."
+        for i,r in enumerate(result):
+            if i==0:
+                final_result=r
+                continue
+            final_result=np.hstack((final_result,r))
+        total_bodies=len(final_result)
+        n_chunks=len(bodies_chunks)
+        rest=total_bodies-ncores*chunk_size
+        logging.info("Processed  %d  bodies on %d cores. %d chuncks x %d each + 1 chunk x %d ",total_bodies,ncores ,n_chunks-1,chunk_size,rest)
+        return final_result
+    except Exception as e:
+        logging.exception("Main loop exception:")
 
 
 '''

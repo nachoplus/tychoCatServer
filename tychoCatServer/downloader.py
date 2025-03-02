@@ -10,7 +10,7 @@ from .config import *
 import logging
 
 # Create a custom logger
-logger = logging.getLogger('dowloader')
+logger = logging.getLogger('downloader')
 
 
 def exe(cmd):
@@ -34,14 +34,13 @@ def ucac4files():
                 p=call(call_list)
                 logger.info("%s",exe("touch "+path+"/UCAC4.finished"))
         else:
-                logger.info("UCAC4 files already download")
+                logger.warning("UCAC4 files already download")
 
 
 def jplEph():
-        pkg='ftp://ssd.jpl.nasa.gov/pub/eph/planets/Linux/de430/linux_p1550p2650.430'
+        pkg=config.get('MPCORB','jpl_eph_url')
         logger.info("Downloading JPL Ephem file:"+pkg)
-        cfg=dict(config.items("MPCORB"))
-        path=os.path.dirname(os.path.abspath(de_jpl))
+        path=f'{storage_dir}/DE-JPL'
         file_name = pkg.split('/')[-1]
         
         if not os.path.exists(path):
@@ -52,7 +51,7 @@ def jplEph():
                 urlretrieve(pkg,path+'/'+file_name)
                 logger.info("Installing JPL ephem file:%s",file_name)
         else:
-                logger.info("%s allready downloaded",file_name)
+                logger.info("%s already downloaded",file_name)
 
 def downloadMPCORBfile():
         '''
@@ -64,33 +63,47 @@ def downloadMPCORBfile():
         dir_dest=dated_mpcorb_dir
         if not os.path.exists(dir_dest):
             os.makedirs(dir_dest)
-        fileD='MPCORB.DAT'
-        mpcorbfile=dir_dest+'/'+fileD
-        datedmpcorbfile=dir_dest+'/'+getToday()+'.'+fileD
-        logger.info("Checking for updated MPCORB.DAT:"+datedmpcorbfile)
-        if not os.path.isfile(datedmpcorbfile):
-            logger.info("MPCORB file not exists:"+datedmpcorbfile)
-            logger.info("Downloading")
-            filename=os.path.basename(cfg["mpcorburl"])
-            logger.info(filename)
-            cmd="wget -c "+cfg["mpcorburl"]+" -O "+dir_dest+"/"+filename
-            logger.info(cmd)
-            res=exe(cmd)
-            logger.info(res)
-            res=exe("gunzip -f "+dir_dest+"/"+filename)
-            logger.info(res)
-            logger.info("Renaming "+mpcorbfile+ " to "+datedmpcorbfile)
-            res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
-            logger.info(res)
-            logger.info("Cleaning FIX_guest_* cache files")
-            res=exe("rm "+guestdb_dir+"/FIX_guest_????-??-??.p")
-            logger.info(res)                  
-        else:
-            logger.info("%s EXIST. Using" % datedmpcorbfile)
-        logger.info("Creating symbolic link from "+getToday()+'.'+fileD+ " to "+ dir_dest+ "/FIX_MPCORB.DAT")
-        res=exe("ln -s -f "+getToday()+'.'+fileD+" "+ dir_dest+ "/FIX_MPCORB.DAT")
-        logger.info(res)
 
+        for fileD in ['MPCORB.DAT','ELEMENTS.COMET']:
+                mpcorbfile=dir_dest+'/'+fileD
+                datedmpcorbfile=dir_dest+'/'+getToday()+'.'+fileD
+                logger.info(f"Checking for updated {fileD}:{datedmpcorbfile}")
+                if not os.path.isfile(datedmpcorbfile):
+                        logger.info(f"{fileD} file not exists:{datedmpcorbfile}")                     
+                        if 'MPCORB.DAT' in fileD:
+                               url="mpcorburl"
+                        elif 'ELEMENTS.COMET' in fileD:
+                               url="comet_elements_url"
+                        logger.info(f"Downloading:{url}")
+                        filename=os.path.basename(cfg[url])                               
+                        logger.info(f'Basename:{filename}')                               
+                        cmd=f"wget -c {cfg[url]} -O {dir_dest}/{filename}"
+                        logger.info(cmd)
+                        res=exe(cmd)
+                        logger.info(res)
+                        if 'MPCORB.DAT' in fileD:
+                                res=exe("gunzip -f "+dir_dest+"/"+filename)
+                                logger.info(res)
+                        logger.info("Renaming "+mpcorbfile+ " to "+datedmpcorbfile)
+                        res=exe("mv  "+mpcorbfile+ " "+datedmpcorbfile)
+                        logger.info(res)
+                        logger.info("Cleaning FIX_guest_* cache files")
+                        res=exe("rm "+guestdb_dir+"/FIX_guest_????-??-??.p")
+                        logger.info(res)                  
+                else:
+                        logger.info("%s EXIST. Using" % datedmpcorbfile)
+                logger.info(f"Creating symbolic link from {getToday()}.{fileD} to {dir_dest}/FIX_{fileD}")
+                res=exe(f"ln -s -f {getToday()}.{fileD} {dir_dest}/FIX_{fileD}")
+                logger.info(res)
+        bill_gray_sof_file='mpcorb.sof'
+        logging.info("Creating MPC.sof file")
+        cmd=[f"{pkgpath}/mpc2sof {dir_dest}/{getToday()}.MPCORB.DAT {dir_dest}/{getToday()}.ELEMENTS.COMET"]
+        res=exe(cmd)
+        logger.info(res)
+        res=exe(f"mv  {bill_gray_sof_file} {dir_dest}/{getToday()}.{bill_gray_sof_file}")
+        logger.info(f"Creating symbolic link from {getToday()}.{bill_gray_sof_file} to FIX_{bill_gray_sof_file}")
+        res=exe(f"ln -s -f {getToday()}.{bill_gray_sof_file} {dir_dest}/FIX_{bill_gray_sof_file}")
+        logger.info(res)
 
 def download():
         cfg=dict(config.items("MPCORB"))
@@ -105,7 +118,6 @@ def download():
         jplEph()
         if bool(cfg['use_fix_mpcorb']):
             logger.info("Step 3. -------------------------------------------")
-            logger.info("OBSERVATORY MODE:")
             downloadMPCORBfile()
         path=storage_dir
         logger.warning("================================================")

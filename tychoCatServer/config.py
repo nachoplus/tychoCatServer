@@ -10,7 +10,7 @@ import configparser
 
 #Logging
 import logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 
 
 #General paths
@@ -44,7 +44,6 @@ tledir=f'{storage_dir}/TLEs'
 ucac4data_dir=f'{storage_dir}/UCAC4'
 dated_mpcorb_dir=f'{storage_dir}/DATEDMPCORB'
 guestdb_dir=f'{storage_dir}/guestDB'
-de_jpl=f'{storage_dir}/DE-JPL/linux_p1550p2650.430'
 
 
 def TodayDir():
@@ -79,6 +78,7 @@ def printCfg():
         print("================ "+section+" ================")
         for item in config.items(section):
             print(item)
+
 
 if __name__ == '__main__':
      print(os.environ)

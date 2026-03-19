@@ -12,5 +12,6 @@ integrat
 *.sof
 tychoCatServer.cfg
 venv
+kkenv
 build
 tychoCatServer.egg-info

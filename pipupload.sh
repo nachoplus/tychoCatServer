@@ -1,6 +1,6 @@
-tagname='0.1.4'
+tagname='0.1.5'
 git tag --delete ${tagname}
-git tag ${tagname}   -m "first pip version"
+git tag ${tagname}   -m "Fit urllib3 vulnerability"
 git push origin :refs/tags/${tagname}
 git push --tags origin main
 rm dist/*

@@ -240,7 +240,7 @@ def read_sof_file(sof_file):
                 except ValueError:
                         name=name+" "+line_elements[1]
                         start_in=2
-                result[name]=dict()
+                body_elements=list()
                 for i,e in enumerate(line_elements[start_in:]):
                       #convert to float
                       if hdr[i+1] in ['Te','Tfirst','Tlast']:
@@ -252,7 +252,8 @@ def read_sof_file(sof_file):
                                 value=float(e)
                         except:
                                 value=e
-                      result[name].update({hdr[i+1]:value})
+                      body_elements.append((hdr[i+1],value))
+                result[name]=dict(body_elements)
         return result
                       
 
